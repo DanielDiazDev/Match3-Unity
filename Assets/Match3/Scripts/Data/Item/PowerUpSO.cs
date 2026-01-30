@@ -2,6 +2,7 @@
 using Assets.Match3.Scripts.Grid;
 using Match3.Scripts.Grid;
 using Match3.Scripts.Pieces;
+using Match3.Scripts.PowerUps;
 using UnityEngine;
 
 namespace Match3.Scripts.Data.Item
@@ -11,7 +12,7 @@ namespace Match3.Scripts.Data.Item
         public GameObject vfxPrefab;
         public AudioClip activateSfx;
         
-        public abstract void Activate(Piece piece, GridSystem<GridObject> gridSystem);
+        public abstract void Activate(Piece piece, GridSystem<GridObject> gridSystem, PowerUpSystem powerUpSystem);
     }
     
 }

@@ -82,7 +82,8 @@ namespace Match3.Scripts.Core
                 for (var y = 0; y < _levelDataSO.height; y++)
                 {
                     var tileSo = _levelDataSO.initialPieces[new Vector2Int(x, y)];
-                    _pieceSpawner.Spawn(tileSo.id, new Vector2Int(x, y), transform);
+                    var piece = _pieceSpawner.Spawn(tileSo.id, new Vector2Int(x, y), transform);
+                    piece.PlaySpawnAnimation();
                 }
             }
         }
@@ -136,7 +137,7 @@ namespace Match3.Scripts.Core
             //  Loop de cascadas
             do
             {
-                _matchProcessor.ProcessMatches(matches);
+                await _matchProcessor.ProcessMatches(matches);
 
                 bool moved;
                 do

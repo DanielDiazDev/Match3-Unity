@@ -11,18 +11,20 @@ namespace Match3.Scripts.PowerUps
     {
         private PowerUpSO _powerUpSo;
         private GridSystem<GridObject>  _gridSystem;
+        private PowerUpSystem _powerUpSystem;
         private Piece _piece;
 
-        public PowerUpCommand(PowerUpSO powerUpSo, Piece piece, GridSystem<GridObject> gridSystem)
+        public PowerUpCommand(PowerUpSO powerUpSo, Piece piece, GridSystem<GridObject> gridSystem, PowerUpSystem powerUpSystem)
         {
             _powerUpSo = powerUpSo;
             _piece = piece;
             _gridSystem = gridSystem;
+            _powerUpSystem = powerUpSystem;
         }
 
         public async UniTask Execute()
         {
-            _powerUpSo.Activate(_piece,  _gridSystem);
+            _powerUpSo.Activate(_piece,  _gridSystem, _powerUpSystem);
         }
     }
 }

@@ -2,6 +2,7 @@
 using Match3.Scripts.Data.Item;
 using System;
 using System.Collections.Generic;
+using PrimeTween;
 using UnityEngine;
 
 namespace Match3.Scripts.Pieces
@@ -20,9 +21,28 @@ namespace Match3.Scripts.Pieces
         }
        
         public PieceSO GetTile() => pieceSo;
+
+        public void ChangePieceSO(PieceSO newPieceSo)
+        {
+            this.pieceSo = newPieceSo;
+            _spriteRenderer.sprite = pieceSo.sprite;
+        }
+
+        public Tween PlaySpawnAnimation()
+        {
+            transform.localScale = Vector3.zero;
+            return Tween.Scale(transform, Vector3.one, 0.3f, Ease.OutBack);
+        }
+
+        public Tween PlayDestroyAnimation()
+        {
+            return Tween.Scale(transform, Vector3.zero, 0.2f, Ease.InBack)
+                .OnComplete(() => Destroy(gameObject));
+        }
+
         public void OnDestroyed()
         {
-            Destroy(gameObject);
+            PlayDestroyAnimation();
         }
     }
 }

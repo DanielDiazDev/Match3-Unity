@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Assets.Match3.Scripts.Grid;
+using Cysharp.Threading.Tasks;
 using Match3.Scripts.Grid;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.Match.Systems.Shapes;
@@ -18,7 +20,7 @@ public class MatchProcessor
         _powerUpSystem = powerUpSystem;
     }
 
-    public void ProcessMatches(List<PieceMatch> matches)
+    public async UniTask ProcessMatches(List<PieceMatch> matches)
     {
         foreach (var match in matches)
         {
@@ -27,23 +29,30 @@ public class MatchProcessor
 
             ClassifiedMatch classified = _classifier.Classify(match);
 
-            // Vector2Int powerUpPosition = classified.center;
-            // string powerUpId = GetPowerUpForMatch(classified);
-            //
-            // if (!string.IsNullOrEmpty(powerUpId))
-            // {
-            //     _powerUpSystem.AddPowerUpToCommand(powerUpId, powerUpPosition);
-            // }
+            Vector2Int powerUpPosition = classified.center;
+            string powerUpId = GetPowerUpForMatch(classified);
 
-            DestroyMatchPieces(classified);
+            if (!string.IsNullOrEmpty(powerUpId))
+            {
+                _powerUpSystem.ChangeToPowerUp(powerUpId, powerUpPosition);
+            }
+
+            DestroyMatchPieces(classified, !string.IsNullOrEmpty(powerUpId));
+            await UniTask.Delay(200); // Wait for destruction animation
         }
     }
 
     private string GetPowerUpForMatch(ClassifiedMatch match)
     {
+        if (match.shape == MatchShape.Line4)
+        {
+            // Check if it's horizontal or vertical
+            bool isHorizontal = match.positions.All(p => p.y == match.positions[0].y);
+            return isHorizontal ? "VerticalLine" : "HorizontalLine";
+        }
+
         return match.shape switch
         {
-            MatchShape.Line4 => "LineClear",
             MatchShape.Line5 => "ColorBomb",
             MatchShape.TShape => "Bomb",
             MatchShape.LShape => "Bomb",
@@ -51,18 +60,14 @@ public class MatchProcessor
         };
     }
 
-    private void DestroyMatchPieces(ClassifiedMatch match)
+    private void DestroyMatchPieces(ClassifiedMatch match, bool spawningPowerUp)
     {
         foreach (var pos in match.positions)
         {
-            // if (pos == match.center)
-            //     continue;
+            if (spawningPowerUp && pos == match.center)
+                continue;
 
-            var gridObject = _grid.GetValue(pos.x, pos.y);
-            var piece = gridObject.GetPiece();
-
-            piece.OnDestroyed();
-            gridObject.Clear();
+            _powerUpSystem.ClearCell(pos.x, pos.y);
         }
     }
 }

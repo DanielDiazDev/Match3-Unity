@@ -4,6 +4,7 @@ using Assets.Match3.Scripts.Grid;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.General;
 using Match3.Scripts.Grid;
+using PrimeTween;
 using UnityEngine;
 
 namespace Match3.Scripts.PowerUps
@@ -23,16 +24,50 @@ namespace Match3.Scripts.PowerUps
             return _gridSystem.GetValue(a.x, a.y).HasPowerUp() ||  _gridSystem.GetValue(b.x, b.y).HasPowerUp();
         }
 
-        public void ChangeToPowerUp(Vector2Int position)
+        public void ChangeToPowerUp(string powerUpId, Vector2Int position)
         {
-          //  var piece = _gridSystem.GetValue(position.x, position.y).GetPiece().ChangePieceSO();
+            var powerUpSo = _powerUpSoDatabase.powerUpSOs.FirstOrDefault(p => p.id == powerUpId);
+            if (powerUpSo == null) return;
+
+            var gridObject = _gridSystem.GetValue(position.x, position.y);
+            var piece = gridObject.GetPiece();
+            piece.ChangePieceSO(powerUpSo);
+
+            // Punch scale for juice
+            Tween.PunchScale(piece.transform, Vector3.one * 0.5f, 0.5f);
         }
 
         public void AddPowerUpToCommand(string powerUpId, Vector2Int position)
         {
             var powerUp = _powerUpSoDatabase.powerUpSOs.FirstOrDefault(p => p.id == powerUpId);
             var piece = _gridSystem.GetValue(position.x, position.y).GetPiece();
-            CommandQueue.Instance.AddCommand(new PowerUpCommand(powerUp, piece, _gridSystem));
+            CommandQueue.Instance.AddCommand(new PowerUpCommand(powerUp, piece, _gridSystem, this));
+        }
+
+        public void TriggerPowerUp(Vector2Int position)
+        {
+            var gridObject = _gridSystem.GetValue(position.x, position.y);
+            if (gridObject == null || gridObject.IsEmpty() || !gridObject.HasPowerUp()) return;
+
+            var piece = gridObject.GetPiece();
+            var powerUp = piece.pieceSo as PowerUpSO;
+            
+            CommandQueue.Instance.AddCommand(new PowerUpCommand(powerUp, piece, _gridSystem, this));
+        }
+
+        public void ClearCell(int x, int y)
+        {
+            var gridObject = _gridSystem.GetValue(x, y);
+            if (gridObject == null || gridObject.IsEmpty()) return;
+
+            if (gridObject.HasPowerUp())
+            {
+                TriggerPowerUp(new Vector2Int(x, y));
+            }
+            var piece = gridObject.GetPiece();
+            if(piece == null) return;
+            piece.OnDestroyed();
+            gridObject.Clear();
         }
     }
 }

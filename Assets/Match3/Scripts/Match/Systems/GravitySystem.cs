@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Assets.Match3.Scripts.Grid;
 using Cysharp.Threading.Tasks;
 using Match3.Scripts.Data;
@@ -20,9 +21,10 @@ namespace Match3.Scripts.Core
             _height = height;
         }
 
-        public UniTask<bool> ApplyGravity()
+        public async UniTask<bool> ApplyGravity()
         {
             bool movedAny = false;
+            var tweens = new List<Tween>();
 
             for (int x = 0; x < _width; x++)
             {
@@ -42,9 +44,8 @@ namespace Match3.Scripts.Core
                         writeCell.SetPiece(piece);
                         readCell.Clear();
 
-                        Tween.StopAll(piece.transform);
-                        piece.transform.position =
-                            _grid.GetWorldPositionCenter(x, writeY);
+                        var targetPos = _grid.GetWorldPositionCenter(x, writeY);
+                        tweens.Add(Tween.Position(piece.transform, targetPos, 0.3f, Ease.OutBounce));
 
                         movedAny = true;
                     }
@@ -53,7 +54,12 @@ namespace Match3.Scripts.Core
                 }
             }
 
-            return UniTask.FromResult(movedAny);
+            if (movedAny)
+            {
+                await UniTask.WhenAll(tweens.Select(t => t.ToUniTask()));
+            }
+
+            return movedAny;
         }
         private bool ApplyGravityToColumn(int x)
         {

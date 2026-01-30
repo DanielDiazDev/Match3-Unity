@@ -1,5 +1,6 @@
 ﻿using Assets.Match3.Scripts.Grid;
 using Match3.Scripts.Grid;
+using Match3.Scripts.Pieces;
 using UnityEngine;
 
 namespace Match3.Scripts.Match.Systems.Spawner
@@ -17,12 +18,13 @@ namespace Match3.Scripts.Match.Systems.Spawner
             _piecesFactory = new PieceFactory(_piecesConfigurationSO); //Hacer inyeccion
         }
 
-        public void Spawn(string id, Vector2Int position, Transform parent)
+        public Piece Spawn(string id, Vector2Int position, Transform parent)
         {
             var piece = _piecesFactory.Create(id, _gridSystem.GetWorldPositionCenter(position.x, position.y), parent);
             var gridObject = new GridObject(_gridSystem, position.x, position.y);
             gridObject.SetPiece(piece);
             _gridSystem.SetValue(position.x, position.y, gridObject);
+            return piece;
         }
     }
 }
