@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eaf88c353b614090b9d63581244b28f5, type: 3}
+  m_Name: PowerUpDatabaseSO
+  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.PowerUpDatabaseSO
+  powerUpSOs:
+  - {fileID: 11400000, guid: 267a3f026bce4b84393c2f1ae113565d, type: 2}
+  - {fileID: 11400000, guid: db91aa7d8db2a0a4ca11d1a7f36a9849, type: 2}
+  - {fileID: 11400000, guid: e6b2a2f3aa53fb745bbbff8e0a1f4646, type: 2}
+  - {fileID: 11400000, guid: 09ebfd3aa62ca1d4b8f55b8eecb247e7, type: 2}
