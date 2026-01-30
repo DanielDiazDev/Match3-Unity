@@ -25,14 +25,14 @@ namespace Match3.Scripts.Match.Systems
 
             var posA = _gridSystem.GetWorldPositionCenter(a.x, a.y);
             var posB = _gridSystem.GetWorldPositionCenter(b.x, b.y);
-            Tween.LocalPosition(objA.GetPiece().transform, posB, 0.3f, Ease.InQuad);
-            Tween.LocalPosition(objB.GetPiece().transform, posA, 0.3f, Ease.InQuad);
+            var t1 = Tween.Position(objA.GetPiece().transform, posB, 0.3f, Ease.InQuad);
+            var t2 = Tween.Position(objB.GetPiece().transform, posA, 0.3f, Ease.InQuad);
             _gridSystem.SetValue(a.x, a.y, objB);
             _gridSystem.SetValue(b.x, b.y, objA);
 
             objA.SetPosition(b.x, b.y);
             objB.SetPosition(a.x, a.y);
-            await UniTask.Delay(300);
+            await UniTask.WhenAll(t1.ToUniTask(), t2.ToUniTask());
         }
     }
 }

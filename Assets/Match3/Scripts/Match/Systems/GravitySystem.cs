@@ -42,6 +42,7 @@ namespace Match3.Scripts.Core
                         writeCell.SetPiece(piece);
                         readCell.Clear();
 
+                        Tween.StopAll(piece.transform);
                         piece.transform.position =
                             _grid.GetWorldPositionCenter(x, writeY);
 
@@ -86,6 +87,7 @@ namespace Match3.Scripts.Core
             toCell.SetPiece(piece);
             fromCell.Clear();
 
+            Tween.StopAll(piece.transform);
             piece.transform.position = _grid.GetWorldPositionCenter(toX, toY);
         }
 
