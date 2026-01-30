@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7710324b3b664ddaaeb4338306959a14, type: 3}
   m_Name: BombPowerUpSO
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.BombPowerUpSO
-  id: 
-  sprite: {fileID: 0}
+  id: Bomb
+  sprite: {fileID: 21300000, guid: 2be55834e2ff7b144a243413f2979787, type: 3}
   prefab: {fileID: 0}
   audioClip: {fileID: 0}
   vfxPrefab: {fileID: 0}

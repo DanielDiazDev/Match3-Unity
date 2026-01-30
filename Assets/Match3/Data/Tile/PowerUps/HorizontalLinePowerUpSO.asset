@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 452452de6d334a2fbfe2ed5157126d29, type: 3}
   m_Name: HorizontalLinePowerUpSO
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.HorizontalLinePowerUpSO
-  id: 
-  sprite: {fileID: 0}
+  id: HorizontalLine
+  sprite: {fileID: 21300000, guid: 01a34d9e0dade794188a273832564fb0, type: 3}
   prefab: {fileID: 0}
   audioClip: {fileID: 0}
   vfxPrefab: {fileID: 0}

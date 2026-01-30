@@ -27,7 +27,8 @@ namespace Match3.Scripts.Grid
         public void SetPiece(Piece piece) => _piece = piece;
         public bool IsEmpty() => _piece == null;
         public Piece GetPiece() => _piece;
-        public bool HasPowerUp() => _piece.pieceSo is  PowerUpSO;
+        public bool HasPowerUp() => _piece?.pieceSo is PowerUpSO;
+
 
         public void Clear()
         {
