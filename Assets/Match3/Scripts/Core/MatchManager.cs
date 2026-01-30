@@ -7,6 +7,7 @@ using Match3.Scripts.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Match3.Scripts.General;
 using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.Match.Systems.Shapes;
@@ -125,9 +126,29 @@ namespace Match3.Scripts.Core
 
             await _pieceSwapper.SwapTile(a, b);
 
+            bool powerUpActivated = false;
+            var cellA = _gridSystem.GetValue(a.x, a.y);
+            var cellB = _gridSystem.GetValue(b.x, b.y);
+
+            if (cellA.HasPowerUp())
+            {
+                _powerUpSystem.TriggerPowerUp(a);
+                powerUpActivated = true;
+            }
+            if (cellB.HasPowerUp())
+            {
+                _powerUpSystem.TriggerPowerUp(b);
+                powerUpActivated = true;
+            }
+
+            if (powerUpActivated)
+            {
+                await CommandQueue.Instance.WaitForAllCommands();
+            }
+
             var matches = _matchFinder.FindMatches(new List<Vector2Int> { a, b });
 
-            if (!matches.Any())
+            if (!matches.Any() && !powerUpActivated)
             {
                 await _pieceSwapper.SwapTile(b, a);
                 _isBusy = false;
@@ -137,7 +158,11 @@ namespace Match3.Scripts.Core
             //  Loop de cascadas
             do
             {
-                await _matchProcessor.ProcessMatches(matches);
+                if (matches.Any())
+                {
+                    await _matchProcessor.ProcessMatches(matches, new List<Vector2Int> { a, b });
+                    await CommandQueue.Instance.WaitForAllCommands();
+                }
 
                 bool moved;
                 do

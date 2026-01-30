@@ -37,13 +37,6 @@ namespace Match3.Scripts.PowerUps
             Tween.PunchScale(piece.transform, Vector3.one * 0.5f, 0.5f);
         }
 
-        public void AddPowerUpToCommand(string powerUpId, Vector2Int position)
-        {
-            var powerUp = _powerUpSoDatabase.powerUpSOs.FirstOrDefault(p => p.id == powerUpId);
-            var piece = _gridSystem.GetValue(position.x, position.y).GetPiece();
-            CommandQueue.Instance.AddCommand(new PowerUpCommand(powerUp, piece, _gridSystem, this));
-        }
-
         public void TriggerPowerUp(Vector2Int position)
         {
             var gridObject = _gridSystem.GetValue(position.x, position.y);

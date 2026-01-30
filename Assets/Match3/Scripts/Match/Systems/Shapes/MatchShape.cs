@@ -38,43 +38,52 @@ namespace Match3.Scripts.Match.Systems.Shapes
             var positions = match.positions;
             Vector2Int center = FindCrossCenter(positions);
 
-            bool hasHorizontal = HasLine(positions, Vector2Int.right);
-            bool hasVertical = HasLine(positions, Vector2Int.up);
-            int left  = Count(center, positions, Vector2Int.left);
-            int right = Count(center, positions, Vector2Int.right);
-            int up    = Count(center, positions, Vector2Int.up);
-            int down  = Count(center, positions, Vector2Int.down);
+            int maxH = 0;
+            int maxV = 0;
 
-            int horizontal = left + right + 1;
-            int vertical   = up + down + 1;
-
-            if (horizontal >= 3 && vertical >= 3)
+            foreach (var pos in positions)
             {
-                bool hasLeft  = left > 0;
-                bool hasRight = right > 0;
-                bool hasUp    = up > 0;
-                bool hasDown  = down > 0;
+                int h = 1;
+                Vector2Int curr = pos + Vector2Int.left;
+                while (positions.Contains(curr)) { h++; curr += Vector2Int.left; }
+                curr = pos + Vector2Int.right;
+                while (positions.Contains(curr)) { h++; curr += Vector2Int.right; }
+                maxH = Mathf.Max(maxH, h);
 
-                int horizontalArms = (hasLeft ? 1 : 0) + (hasRight ? 1 : 0);
-                int verticalArms   = (hasUp ? 1 : 0) + (hasDown ? 1 : 0);
-
-                if (horizontalArms == 1 && verticalArms == 1)
-                {
-                    return new ClassifiedMatch(match, MatchShape.LShape, center);
-                }
-
-                if ((horizontalArms == 2 && verticalArms == 1) ||
-                    (verticalArms == 2 && horizontalArms == 1))
-                {
-                    return new ClassifiedMatch(match, MatchShape.TShape, center);
-                }
+                int v = 1;
+                curr = pos + Vector2Int.down;
+                while (positions.Contains(curr)) { v++; curr += Vector2Int.down; }
+                curr = pos + Vector2Int.up;
+                while (positions.Contains(curr)) { v++; curr += Vector2Int.up; }
+                maxV = Mathf.Max(maxV, v);
             }
 
+            if (maxH >= 3 && maxV >= 3)
+            {
+                // Likely T or L shape
+                // Find potential center of the cross/T/L
+                center = FindCrossCenter(positions);
+                
+                // Re-calculate arms from the found center
+                int left = Count(center, positions, Vector2Int.left);
+                int right = Count(center, positions, Vector2Int.right);
+                int up = Count(center, positions, Vector2Int.up);
+                int down = Count(center, positions, Vector2Int.down);
 
-            if (positions.Count == 5)
+                int horizontalArms = (left > 0 ? 1 : 0) + (right > 0 ? 1 : 0);
+                int verticalArms = (up > 0 ? 1 : 0) + (down > 0 ? 1 : 0);
+
+                if (horizontalArms == 1 && verticalArms == 1)
+                    return new ClassifiedMatch(match, MatchShape.LShape, center);
+
+                if ((horizontalArms == 2 && verticalArms == 1) || (verticalArms == 2 && horizontalArms == 1))
+                    return new ClassifiedMatch(match, MatchShape.TShape, center);
+            }
+
+            if (maxH >= 5 || maxV >= 5)
                 return new ClassifiedMatch(match, MatchShape.Line5, center);
 
-            if (positions.Count == 4)
+            if (maxH == 4 || maxV == 4)
                 return new ClassifiedMatch(match, MatchShape.Line4, center);
 
             return new ClassifiedMatch(match, MatchShape.Line3, center);

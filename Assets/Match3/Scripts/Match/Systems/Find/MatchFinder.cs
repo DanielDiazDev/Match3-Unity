@@ -57,11 +57,12 @@ namespace Match3.Scripts.Match.Systems.Find
             List<Vector2Int> result = new List<Vector2Int>();
             Queue<Vector2Int> queue = new Queue<Vector2Int>();
             HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
-
-            PieceSO pieceSo = _gridSystem
+            var oldPiece = _gridSystem
                 .GetValue(start.x, start.y)
-                .GetPiece().pieceSo;
-
+                .GetPiece();
+            if (oldPiece == null) return result;
+            PieceSO pieceSo = oldPiece.pieceSo;
+            
             queue.Enqueue(start);
             visited.Add(start);
 
@@ -97,11 +98,27 @@ namespace Match3.Scripts.Match.Systems.Find
         {
             foreach (var pos in cluster)
             {
-                int horizontal = cluster.Count(p => p.y == pos.y);
-                int vertical = cluster.Count(p => p.x == pos.x);
+                // Check horizontal line through this position
+                int hCount = 1;
+                // Left
+                Vector2Int current = pos + Vector2Int.left;
+                while (cluster.Contains(current)) { hCount++; current += Vector2Int.left; }
+                // Right
+                current = pos + Vector2Int.right;
+                while (cluster.Contains(current)) { hCount++; current += Vector2Int.right; }
 
-                if (horizontal >= 3 || vertical >= 3)
-                    return true;
+                if (hCount >= 3) return true;
+
+                // Check vertical line through this position
+                int vCount = 1;
+                // Down
+                current = pos + Vector2Int.down;
+                while (cluster.Contains(current)) { vCount++; current += Vector2Int.down; }
+                // Up
+                current = pos + Vector2Int.up;
+                while (cluster.Contains(current)) { vCount++; current += Vector2Int.up; }
+
+                if (vCount >= 3) return true;
             }
 
             return false;

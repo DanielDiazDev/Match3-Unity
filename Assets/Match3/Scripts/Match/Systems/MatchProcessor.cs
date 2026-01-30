@@ -2,6 +2,7 @@
 using System.Linq;
 using Assets.Match3.Scripts.Grid;
 using Cysharp.Threading.Tasks;
+using Match3.Scripts.General;
 using Match3.Scripts.Grid;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.Match.Systems.Shapes;
@@ -20,25 +21,63 @@ public class MatchProcessor
         _powerUpSystem = powerUpSystem;
     }
 
-    public async UniTask ProcessMatches(List<PieceMatch> matches)
+    public async UniTask ProcessMatches(List<PieceMatch> matches, List<Vector2Int> centerHints = null)
     {
+        var powerUpsToSpawn = new Dictionary<Vector2Int, string>();
+        var positionsToClear = new HashSet<Vector2Int>();
+
         foreach (var match in matches)
         {
             if (match.positions.Count < 3)
                 continue;
 
             ClassifiedMatch classified = _classifier.Classify(match);
-
             Vector2Int powerUpPosition = classified.center;
+
+            // If we have center hints (from a swap), use the hint that is part of this match
+            if (centerHints != null)
+            {
+                foreach (var hint in centerHints)
+                {
+                    if (match.positions.Contains(hint))
+                    {
+                        powerUpPosition = hint;
+                        break;
+                    }
+                }
+            }
+
             string powerUpId = GetPowerUpForMatch(classified);
 
             if (!string.IsNullOrEmpty(powerUpId))
             {
-                _powerUpSystem.ChangeToPowerUp(powerUpId, powerUpPosition);
+                // Ensure we don't clear the position that will become a power-up
+                powerUpsToSpawn[powerUpPosition] = powerUpId;
             }
 
-            DestroyMatchPieces(classified, !string.IsNullOrEmpty(powerUpId));
-            await UniTask.Delay(200); // Wait for destruction animation
+            foreach (var pos in match.positions)
+            {
+                positionsToClear.Add(pos);
+            }
+        }
+
+        // 1. Create power-ups
+        foreach (var kvp in powerUpsToSpawn)
+        {
+            _powerUpSystem.ChangeToPowerUp(kvp.Value, kvp.Key);
+            positionsToClear.Remove(kvp.Key); // Don't clear if it's becoming a power-up
+        }
+
+        // 2. Clear remaining match pieces
+        foreach (var pos in positionsToClear)
+        {
+            _powerUpSystem.ClearCell(pos.x, pos.y);
+        }
+
+        await CommandQueue.Instance.WaitForAllCommands();
+        if (positionsToClear.Count > 0 || powerUpsToSpawn.Count > 0)
+        {
+            await UniTask.Delay(200); // Wait for destruction animations if any
         }
     }
 
@@ -60,14 +99,4 @@ public class MatchProcessor
         };
     }
 
-    private void DestroyMatchPieces(ClassifiedMatch match, bool spawningPowerUp)
-    {
-        foreach (var pos in match.positions)
-        {
-            if (spawningPowerUp && pos == match.center)
-                continue;
-
-            _powerUpSystem.ClearCell(pos.x, pos.y);
-        }
     }
-}

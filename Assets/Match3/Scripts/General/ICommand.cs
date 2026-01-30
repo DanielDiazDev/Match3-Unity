@@ -40,5 +40,9 @@ namespace Match3.Scripts.General
             }
             _runningCommand = false;
         }
+        public async UniTask WaitForAllCommands()
+        {
+            await UniTask.WaitUntil(() => !_runningCommand && _commandsToExecute.Count == 0);
+        }
     }
 }
