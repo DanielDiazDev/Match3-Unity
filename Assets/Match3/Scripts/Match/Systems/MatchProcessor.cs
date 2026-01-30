@@ -51,7 +51,6 @@ public class MatchProcessor
 
             if (!string.IsNullOrEmpty(powerUpId))
             {
-                // Ensure we don't clear the position that will become a power-up
                 powerUpsToSpawn[powerUpPosition] = powerUpId;
             }
 
@@ -61,14 +60,12 @@ public class MatchProcessor
             }
         }
 
-        // 1. Create power-ups
         foreach (var kvp in powerUpsToSpawn)
         {
             _powerUpSystem.ChangeToPowerUp(kvp.Value, kvp.Key);
-            positionsToClear.Remove(kvp.Key); // Don't clear if it's becoming a power-up
+            positionsToClear.Remove(kvp.Key);
         }
 
-        // 2. Clear remaining match pieces
         foreach (var pos in positionsToClear)
         {
             _powerUpSystem.ClearCell(pos.x, pos.y);

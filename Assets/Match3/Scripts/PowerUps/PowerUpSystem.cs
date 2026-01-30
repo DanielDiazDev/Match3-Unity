@@ -45,6 +45,10 @@ namespace Match3.Scripts.PowerUps
             var piece = gridObject.GetPiece();
             var powerUp = piece.pieceSo as PowerUpSO;
             
+            // Consume the power-up piece
+            gridObject.Clear();
+            piece.OnDestroyed();
+
             CommandQueue.Instance.AddCommand(new PowerUpCommand(powerUp, piece, _gridSystem, this));
         }
 
