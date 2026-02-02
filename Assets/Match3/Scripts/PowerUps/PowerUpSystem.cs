@@ -4,6 +4,7 @@ using Assets.Match3.Scripts.Grid;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.General;
 using Match3.Scripts.Grid;
+using Match3.Scripts.Vfx;
 using PrimeTween;
 using UnityEngine;
 
@@ -65,6 +66,7 @@ namespace Match3.Scripts.PowerUps
             if(piece == null) return;
             piece.OnDestroyed();
             gridObject.Clear();
+            ParticleManager.Instance.Play("NormalDestroy", piece.transform.position, Quaternion.identity);
         }
     }
 }
