@@ -13,11 +13,13 @@ namespace Match3.Scripts.PowerUps
     public class PowerUpSystem : MonoBehaviour
     {
         private GridSystem<GridObject> _gridSystem;
+        private Match3.Scripts.Score.ScoreSystem _scoreSystem;
         [SerializeField] private PowerUpSODatabase _powerUpSoDatabase;
 
-        public void Init(GridSystem<GridObject> gridSystem)
+        public void Init(GridSystem<GridObject> gridSystem, Match3.Scripts.Score.ScoreSystem scoreSystem)
         {
             _gridSystem = gridSystem;
+            _scoreSystem = scoreSystem;
         }
 
         public bool HavePowerUpSwap(Vector2Int a,  Vector2Int b)
@@ -46,6 +48,7 @@ namespace Match3.Scripts.PowerUps
             var piece = gridObject.GetPiece();
             var powerUp = piece.pieceSo as PowerUpSO;
             
+            _scoreSystem.AddPowerUpActivationScore();
             // Consume the power-up piece
             gridObject.Clear();
             piece.OnDestroyed();
@@ -64,6 +67,8 @@ namespace Match3.Scripts.PowerUps
             }
             var piece = gridObject.GetPiece();
             if(piece == null) return;
+            
+            _scoreSystem.AddPieceClearScore();
             piece.OnDestroyed();
             gridObject.Clear();
             ParticleManager.Instance.Play("NormalDestroy", piece.transform.position, Quaternion.identity);

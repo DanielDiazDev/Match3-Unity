@@ -14,11 +14,13 @@ public class MatchProcessor
     private GridSystem<GridObject> _grid;
     private PowerUpSystem _powerUpSystem;
     private MatchClassifier _classifier = new MatchClassifier();
+    private Match3.Scripts.Score.ScoreSystem _scoreSystem;
 
-    public MatchProcessor(GridSystem<GridObject> grid, PowerUpSystem powerUpSystem)
+    public MatchProcessor(GridSystem<GridObject> grid, PowerUpSystem powerUpSystem, Match3.Scripts.Score.ScoreSystem scoreSystem)
     {
         _grid = grid;
         _powerUpSystem = powerUpSystem;
+        _scoreSystem = scoreSystem;
     }
 
     public async UniTask ProcessMatches(List<PieceMatch> matches, List<Vector2Int> centerHints = null)
@@ -32,6 +34,7 @@ public class MatchProcessor
                 continue;
 
             ClassifiedMatch classified = _classifier.Classify(match);
+            _scoreSystem.AddMatchScore(classified);
             Vector2Int powerUpPosition = classified.center;
 
             // If we have center hints (from a swap), use the hint that is part of this match

@@ -7,6 +7,7 @@ using Match3.Scripts.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Match3.Scripts.Data.Score;
 using Match3.Scripts.General;
 using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
@@ -28,6 +29,8 @@ namespace Match3.Scripts.Core
         private GridSystem<GridObject>  _gridSystem;
         [SerializeField] private PowerUpSystem  _powerUpSystem;
         [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; 
+        [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;
+        private Match3.Scripts.Score.ScoreSystem _scoreSystem;
         private bool _isBusy;
         [Header("DEBUG")]
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
@@ -69,8 +72,9 @@ namespace Match3.Scripts.Core
             _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
             _pieceSwapper = new PieceSwapper(_gridSystem);
             _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _powerUpSystem.Init(_gridSystem);
-            _matchProcessor = new MatchProcessor(_gridSystem, _powerUpSystem);
+            _scoreSystem = new Match3.Scripts.Score.ScoreSystem(new Match3.Scripts.Score.Match3ScoreStrategy(), _scoreConfigurationSO);
+            _powerUpSystem.Init(_gridSystem, _scoreSystem);
+            _matchProcessor = new MatchProcessor(_gridSystem, _powerUpSystem, _scoreSystem);
             _gravitySystem = new GravitySystem(_gridSystem, _levelDataSO.width, _levelDataSO.height);
             _refillSystem = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform);
             _moveValidator = new MoveValidator(_gridSystem, _matchFinder);
@@ -123,7 +127,7 @@ namespace Match3.Scripts.Core
                 return;
 
             _isBusy = true;
-
+            _scoreSystem.ResetMultiplier();
             await _pieceSwapper.SwapTile(a, b);
 
             bool powerUpActivated = false;
@@ -174,7 +178,11 @@ namespace Match3.Scripts.Core
                 await _refillSystem.ApplyRefill();
                 ValidateBoard();
                 matches = _matchFinder.FindMatches(_gridSystem.GetAllPositions());
-
+                
+                if (matches.Any())
+                {
+                    _scoreSystem.IncrementMultiplier();
+                }
             }
             while (matches.Any());
 
