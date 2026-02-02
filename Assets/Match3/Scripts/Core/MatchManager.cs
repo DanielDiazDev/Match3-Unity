@@ -31,6 +31,7 @@ namespace Match3.Scripts.Core
         [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; 
         [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;
         private Match3.Scripts.Score.ScoreSystem _scoreSystem;
+        private Match3.Scripts.Quests.QuestSystem _questSystem;
         private bool _isBusy;
         [Header("DEBUG")]
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
@@ -73,7 +74,11 @@ namespace Match3.Scripts.Core
             _pieceSwapper = new PieceSwapper(_gridSystem);
             _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
             _scoreSystem = new Match3.Scripts.Score.ScoreSystem(new Match3.Scripts.Score.Match3ScoreStrategy(), _scoreConfigurationSO);
-            _powerUpSystem.Init(_gridSystem, _scoreSystem);
+            _questSystem = new Match3.Scripts.Quests.QuestSystem();
+            _questSystem.Initialize(_levelDataSO.quests);
+            _scoreSystem.OnScoreChanged += (score) => _questSystem.NotifyScoreUpdated(score);
+            
+            _powerUpSystem.Init(_gridSystem, _scoreSystem, _questSystem);
             _matchProcessor = new MatchProcessor(_gridSystem, _powerUpSystem, _scoreSystem);
             _gravitySystem = new GravitySystem(_gridSystem, _levelDataSO.width, _levelDataSO.height);
             _refillSystem = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform);

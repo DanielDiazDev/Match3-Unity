@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AYellowpaper.SerializedCollections;
 using Match3.Scripts.Data.Item;
+using Match3.Scripts.Data.Quests;
 using Match3.Scripts.Pieces;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ namespace Match3.Scripts.Data
         [SerializedDictionary("Position", "Cell")]
         public SerializedDictionary<Vector2Int, TileSO> initialPieces = new();
         public List<TileSO> availableTiles = new();
+        public List<QuestObjectiveSO> quests = new();
 #if UNITY_EDITOR
         private void OnValidate()
         {

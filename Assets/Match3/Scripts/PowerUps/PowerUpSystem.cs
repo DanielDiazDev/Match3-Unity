@@ -14,12 +14,14 @@ namespace Match3.Scripts.PowerUps
     {
         private GridSystem<GridObject> _gridSystem;
         private Match3.Scripts.Score.ScoreSystem _scoreSystem;
+        private Match3.Scripts.Quests.QuestSystem _questSystem;
         [SerializeField] private PowerUpSODatabase _powerUpSoDatabase;
 
-        public void Init(GridSystem<GridObject> gridSystem, Match3.Scripts.Score.ScoreSystem scoreSystem)
+        public void Init(GridSystem<GridObject> gridSystem, Match3.Scripts.Score.ScoreSystem scoreSystem, Match3.Scripts.Quests.QuestSystem questSystem)
         {
             _gridSystem = gridSystem;
             _scoreSystem = scoreSystem;
+            _questSystem = questSystem;
         }
 
         public bool HavePowerUpSwap(Vector2Int a,  Vector2Int b)
@@ -69,6 +71,7 @@ namespace Match3.Scripts.PowerUps
             if(piece == null) return;
             
             _scoreSystem.AddPieceClearScore();
+            _questSystem.NotifyPieceDestroyed(piece.GetTile());
             piece.OnDestroyed();
             gridObject.Clear();
             ParticleManager.Instance.Play("NormalDestroy", piece.transform.position, Quaternion.identity);
