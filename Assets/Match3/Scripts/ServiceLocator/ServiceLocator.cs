@@ -139,14 +139,10 @@ namespace Match3.Scripts.ServiceLocator
         public T Get<T>() where T : class
         {
             Type type = typeof(T);
-            T service = null;
 
-            if (TryGetService(type, out service)) return service;
+            if (TryGetService(type, out T service)) return service;
 
-            if (TryGetNextInHierarchy(out ServiceLocator container))
-                return container.Get<T>();
-
-            throw new ArgumentException($"Could not resolve type '{typeof(T).FullName}'.");
+            return TryGetNextInHierarchy(out ServiceLocator container) ? container.Get<T>() : throw new ArgumentException($"Could not resolve type '{typeof(T).FullName}'.");
         }
         
         /// <summary>

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using AYellowpaper.SerializedCollections;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.Data.Quests;
-using Match3.Scripts.Pieces;
 using UnityEngine;
 
-namespace Match3.Scripts.Data
+namespace Match3.Scripts.Data.Level
 {
     [CreateAssetMenu(fileName = "LevelDataSO", menuName = "Level/LevelDataSO")]
     public class LevelDataSO : ScriptableObject
@@ -19,6 +17,14 @@ namespace Match3.Scripts.Data
         public SerializedDictionary<Vector2Int, TileSO> initialPieces = new();
         public List<TileSO> availableTiles = new();
         public List<QuestObjectiveSO> quests = new();
+        public int maxMoves;
+        public float timeLimit; 
+       
+        [Range(1,5)]
+        public int difficulty;
+        
+        public Sprite background;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {

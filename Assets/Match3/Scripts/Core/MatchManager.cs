@@ -7,12 +7,14 @@ using Match3.Scripts.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Match3.Scripts.Data.Level;
 using Match3.Scripts.Data.Score;
 using Match3.Scripts.General;
 using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.Match.Systems.Shapes;
 using Match3.Scripts.Match.Systems.Spawner;
+using Match3.Scripts.Persistence;
 using Match3.Scripts.PowerUps;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,7 +27,8 @@ namespace Match3.Scripts.Core
         [SerializeField] private Vector3 _origin =  Vector3.zero;
         [SerializeField] private bool _debug = true;
         [SerializeField] private SwipeDetector  _swipeDetector;
-        [SerializeField] private LevelDataSO _levelDataSO;
+        [SerializeField] private LevelDataSO _levelDataSoTest;
+        private LevelDataSO _levelDataSO;
         private GridSystem<GridObject>  _gridSystem;
         [SerializeField] private PowerUpSystem  _powerUpSystem;
         [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; 
@@ -69,12 +72,20 @@ namespace Match3.Scripts.Core
         }
         private void InitializeSystems()
         {
-            _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height, _cellSize, _origin, _debug);
+            if (_debug)
+            {
+                _levelDataSO = _levelDataSoTest;
+            }
+            else
+            {
+                _levelDataSO = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>().CurrentLevel;
+            }
+            _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height, _cellSize, new Vector3(-_levelDataSO.width * _cellSize * 0.5f, -_levelDataSO.height * _cellSize * 0.5f, 0f), _debug);
             _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
             _pieceSwapper = new PieceSwapper(_gridSystem);
             _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _scoreSystem = new Match3.Scripts.Score.ScoreSystem(new Match3.Scripts.Score.Match3ScoreStrategy(), _scoreConfigurationSO);
-            _questSystem = new Match3.Scripts.Quests.QuestSystem();
+            _scoreSystem = new Score.ScoreSystem(new Score.Match3ScoreStrategy(), _scoreConfigurationSO);
+            _questSystem = new Quests.QuestSystem();
             _questSystem.Initialize(_levelDataSO.quests);
             _scoreSystem.OnScoreChanged += (score) => _questSystem.NotifyScoreUpdated(score);
             
