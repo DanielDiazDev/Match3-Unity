@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3733a168d7c1b2e4e84282e23136a575, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Match3.Scripts.Core.MatchManager
-  _cellSize: 1
+  _cellSize: 0.5
   _origin: {x: -1, y: -1, z: -1}
   _debug: 1
   _swipeDetector: {fileID: 1922849795}

@@ -1,4 +1,5 @@
-﻿using Match3.Scripts.Data;
+﻿using System.Collections.Generic;
+using Match3.Scripts.Data;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.Data.Level;
 using UnityEditor;
@@ -11,12 +12,35 @@ namespace Editor
     {
         private const int CellSize = 40;
         private TileSO selectedTile;
-
+        private Dictionary<Vector2Int, TileSO> gridBuffer;
+        private bool isInitialized;
         public override void OnInspectorGUI()
         {
+            LevelDataSO levelData = (LevelDataSO)target;
+
+            if (!isInitialized)
+            {
+                gridBuffer = new Dictionary<Vector2Int, TileSO>(levelData.initialPieces);
+                isInitialized = true;
+            }
+
+
             DrawDefaultInspector();
 
-            LevelDataSO levelData = (LevelDataSO)target;
+            EditorGUILayout.Space(10);
+
+           
+            if (GUILayout.Button("Apply Grid Changes"))
+            {
+                Undo.RecordObject(levelData, "Apply Grid Changes");
+
+                levelData.initialPieces.Clear();
+
+                foreach (var kvp in gridBuffer)
+                    levelData.initialPieces.Add(kvp.Key, kvp.Value);
+
+                EditorUtility.SetDirty(levelData);
+            }
 
             if (levelData.width <= 0 || levelData.height <= 0)
             {
@@ -32,8 +56,12 @@ namespace Editor
             DrawGrid(levelData);
 
             if (GUI.changed)
+            {
+                Undo.RecordObject(levelData, "Grid Change");
                 EditorUtility.SetDirty(levelData);
+            }
         }
+
 
         private void DrawTilePalette()
         {
@@ -85,7 +113,11 @@ namespace Editor
                 for (int x = 0; x < levelData.width; x++)
                 {
                     Vector2Int pos = new Vector2Int(x, y);
-                    var tile = levelData.initialPieces[pos];
+
+                    if (!gridBuffer.ContainsKey(pos))
+                        gridBuffer[pos] = null;
+
+                    var tile = gridBuffer[pos];
 
                     Texture texture = tile && tile.sprite
                         ? tile.sprite.texture
@@ -95,12 +127,13 @@ namespace Editor
                             GUILayout.Width(CellSize),
                             GUILayout.Height(CellSize)))
                     {
-                        levelData.initialPieces[pos] = selectedTile;
+                        gridBuffer[pos] = selectedTile; 
                     }
                 }
 
                 EditorGUILayout.EndHorizontal();
             }
         }
+
     }
 }

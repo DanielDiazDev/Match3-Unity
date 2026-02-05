@@ -16,6 +16,8 @@ using Match3.Scripts.Match.Systems.Shapes;
 using Match3.Scripts.Match.Systems.Spawner;
 using Match3.Scripts.Persistence;
 using Match3.Scripts.PowerUps;
+using Match3.Scripts.Quests;
+using Match3.Scripts.Score;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -33,8 +35,8 @@ namespace Match3.Scripts.Core
         [SerializeField] private PowerUpSystem  _powerUpSystem;
         [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; 
         [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;
-        private Match3.Scripts.Score.ScoreSystem _scoreSystem;
-        private Match3.Scripts.Quests.QuestSystem _questSystem;
+        private ScoreSystem _scoreSystem;
+        private QuestSystem _questSystem;
         private bool _isBusy;
         [Header("DEBUG")]
         [SerializeField] private GridObjectDebugView _selectedCellDebug;

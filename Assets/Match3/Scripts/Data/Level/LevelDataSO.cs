@@ -24,39 +24,5 @@ namespace Match3.Scripts.Data.Level
         public int difficulty;
         
         public Sprite background;
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (width <= 0 || height <= 0) return;
-
-            SyncDictionaryWithGrid();
-        }
-
-        private void SyncDictionaryWithGrid()
-        {
-            // Copia temporal para preservar valores
-            var oldData = new Dictionary<Vector2Int, TileSO>(initialPieces);
-
-            initialPieces.Clear();
-
-            // ORDEN: X primero, luego Y
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    var pos = new Vector2Int(x, y);
-
-                    if (oldData.TryGetValue(pos, out var tile))
-                        initialPieces.Add(pos, tile);
-                    else
-                        initialPieces.Add(pos, null);
-                }
-            }
-        }
-#endif
-
-
-
     }
 }
