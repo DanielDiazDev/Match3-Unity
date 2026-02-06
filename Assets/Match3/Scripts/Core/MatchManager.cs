@@ -37,6 +37,9 @@ namespace Match3.Scripts.Core
         [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;
         private ScoreSystem _scoreSystem;
         private QuestSystem _questSystem;
+        private StarSystem _starSystem;
+        private int _remainingMoves;
+        public event Action<int> OnMovesChanged;
         private bool _isBusy;
         [Header("DEBUG")]
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
@@ -91,12 +94,105 @@ namespace Match3.Scripts.Core
             _questSystem.Initialize(_levelDataSO.quests);
             _scoreSystem.OnScoreChanged += (score) => _questSystem.NotifyScoreUpdated(score);
             
+            _starSystem = new StarSystem(_levelDataSO, _scoreSystem, _questSystem);
+            // Victory check moved to end of RunGameLoop to avoid race condition
+
+            _remainingMoves = _levelDataSO.maxMoves;
+            OnMovesChanged?.Invoke(_remainingMoves);
+
             _powerUpSystem.Init(_gridSystem, _scoreSystem, _questSystem);
             _matchProcessor = new MatchProcessor(_gridSystem, _powerUpSystem, _scoreSystem);
             _gravitySystem = new GravitySystem(_gridSystem, _levelDataSO.width, _levelDataSO.height);
             _refillSystem = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform);
             _moveValidator = new MoveValidator(_gridSystem, _matchFinder);
             _shuffleBoardSystem = new ShuffleBoardSystem(_gridSystem, _matchFinder, _moveValidator);
+        }
+
+        private void HandleGameOver()
+        {
+            Debug.Log("[MatchManager] Game Over! Moves finished without completing objectives.");
+            // TODO: Trigger Game Over UI
+        }
+
+        private async UniTask HandleLevelWin()
+        {
+            _starSystem.ForceMinimumStar();
+            Debug.Log($"[MatchManager] Level Win! Stars: {_starSystem.CurrentStars} | Final Star Power: {_starSystem.CurrentStarPower}");
+            
+            if (_remainingMoves > 0)
+            {
+                await ExecutePostGameSequence();
+            }
+            // TODO: Trigger Win UI
+        }
+
+        private async UniTask ExecutePostGameSequence()
+        {
+            _isBusy = true;
+            Debug.Log($"[MatchManager] Executing Post-Game Sequence for {_remainingMoves} remaining moves.");
+
+            while (_remainingMoves > 0)
+            {
+                _remainingMoves--;
+                OnMovesChanged?.Invoke(_remainingMoves);
+
+                // Pick a random piece type available in the grid
+                var allPieces = _gridSystem.GetAllPositions()
+                    .Select(pos => _gridSystem.GetValue(pos.x, pos.y).GetPiece())
+                    .Where(p => p != null)
+                    .ToList();
+
+                if (allPieces.Count == 0) break;
+
+                var randomPiece = allPieces[UnityEngine.Random.Range(0, allPieces.Count)];
+                var targetId = randomPiece.GetTile().id;
+
+                var positionsToDestroy = _gridSystem.GetAllPositions()
+                    .Where(pos => 
+                    {
+                        var p = _gridSystem.GetValue(pos.x, pos.y).GetPiece();
+                        return p != null && p.GetTile().id == targetId;
+                    })
+                    .ToList();
+
+                Debug.Log($"[MatchManager] Post-Game: Destroying {positionsToDestroy.Count} pieces of type {targetId}");
+
+                foreach (var pos in positionsToDestroy)
+                {
+                    _powerUpSystem.ClearCell(pos.x, pos.y);
+                }
+
+                await CommandQueue.Instance.WaitForAllCommands();
+                await UniTask.Delay(1000); // Small pause for visuals
+
+                // Wait for cascades and refills after each "move bonus"
+                bool matchesFound;
+                do
+                {
+                    bool moved;
+                    do
+                    {
+                        moved = await _gravitySystem.ApplyGravity();
+                    }
+                    while (moved);
+
+                    await _refillSystem.ApplyRefill();
+                    await UniTask.Yield();
+                    
+                    var matches = _matchFinder.FindMatches(_gridSystem.GetAllPositions());
+                    matchesFound = matches.Any();
+                    if (matchesFound)
+                    {
+                        await _matchProcessor.ProcessMatches(matches);
+                        await CommandQueue.Instance.WaitForAllCommands();
+                    }
+                } while (matchesFound);
+
+                await UniTask.Delay(300);
+            }
+
+            _isBusy = false;
+            Debug.Log("[MatchManager] Post-Game Sequence Finished.");
         }
         private void InitializeGrid()
         {
@@ -177,6 +273,12 @@ namespace Match3.Scripts.Core
                 return;
             }
 
+            if (matches.Any() || powerUpActivated)
+            {
+                _remainingMoves--;
+                OnMovesChanged?.Invoke(_remainingMoves);
+            }
+
             //  Loop de cascadas
             do
             {
@@ -194,6 +296,7 @@ namespace Match3.Scripts.Core
                 while (moved);
 
                 await _refillSystem.ApplyRefill();
+                await UniTask.Yield(); // Wait for transforms to update properly
                 ValidateBoard();
                 matches = _matchFinder.FindMatches(_gridSystem.GetAllPositions());
                 
@@ -204,7 +307,17 @@ namespace Match3.Scripts.Core
             }
             while (matches.Any());
 
-            if (!_moveValidator.HasAnyValidMove())
+            bool isWin = _questSystem.ActiveQuests.All(q => q.IsReached);
+
+            if (isWin)
+            {
+                await HandleLevelWin();
+            }
+            else if (_remainingMoves <= 0)
+            {
+                HandleGameOver();
+            }
+            else if (!_moveValidator.HasAnyValidMove())
             {
                 Debug.Log("⚠ No hay movimientos, reshuffle necesario");
                 _shuffleBoardSystem.Shuffle();
@@ -223,9 +336,10 @@ namespace Match3.Scripts.Core
                 var expected = _gridSystem.GetWorldPositionCenter(pos.x, pos.y);
                 var actual = cell.GetPiece().transform.position;
 
-                if (Vector3.Distance(expected, actual) > 0.01f)
+                if (Vector3.Distance(expected, actual) > 0.05f) // Increased tolerance slightly
                 {
-                    Debug.LogError($"Desync en {pos} | Esperado {expected} | Actual {actual}");
+                    var piece = cell.GetPiece();
+                    Debug.LogError($"[MatchManager] Desync at {pos} | Piece: {piece.name} ({piece.pieceSo.id}) | Expected: {expected} | Actual: {actual} | Dist: {Vector3.Distance(expected, actual)}");
                 }
             }
         }

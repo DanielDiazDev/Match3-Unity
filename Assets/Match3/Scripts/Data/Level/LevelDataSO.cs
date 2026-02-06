@@ -18,10 +18,11 @@ namespace Match3.Scripts.Data.Level
         public List<TileSO> availableTiles = new();
         public List<QuestObjectiveSO> quests = new();
         public int maxMoves;
-        public float timeLimit; 
-       
         [Range(1,5)]
         public int difficulty;
+
+        public int[] starThresholds = new int[3] { 1000, 2000, 3000 };
+        public int objectiveBonus = 500;
         
         public Sprite background;
     }

@@ -60,8 +60,41 @@ namespace Editor
                 Undo.RecordObject(levelData, "Grid Change");
                 EditorUtility.SetDirty(levelData);
             }
+            if (GUILayout.Button("Generate Random Grid"))
+            {
+                GenerateRandomGrid(levelData);
+            }
+
         }
 
+        private void GenerateRandomGrid(LevelDataSO levelData)
+        {
+            if (levelData.availableTiles == null || levelData.availableTiles.Count == 0)
+            {
+                Debug.LogWarning("No available tiles assigned.");
+                return;
+            }
+
+            Undo.RecordObject(levelData, "Generate Random Grid");
+
+            gridBuffer.Clear();
+
+            for (int x = 0; x < levelData.width; x++)
+            {
+                for (int y = 0; y < levelData.height; y++)
+                {
+                    Vector2Int pos = new Vector2Int(x, y);
+
+                    TileSO randomTile = levelData.availableTiles[
+                        Random.Range(0, levelData.availableTiles.Count)
+                    ];
+
+                    gridBuffer[pos] = randomTile;
+                }
+            }
+
+            EditorUtility.SetDirty(levelData);
+        }
 
         private void DrawTilePalette()
         {

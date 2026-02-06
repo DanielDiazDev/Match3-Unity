@@ -14,18 +14,23 @@ namespace Match3.Scripts.Quests
         public event Action<PieceSO> OnPieceDestroyed;
         public event Action<int> OnScoreUpdated;
         public event Action OnAllObjectivesReached;
+        public event Action OnObjectiveCompleted;
 
         public List<QuestProgress> ActiveQuests => _activeQuests;
+        public int CompletedQuestsCount => _activeQuests.Count(q => q.IsReached);
 
         public void Initialize(List<QuestObjectiveSO> objectives)
         {
             _activeQuests.Clear();
-            foreach (var progress in objectives.Select(obj => obj.CreateProgress()))
+            foreach (var progress in objectives.Take(3).Select(obj => obj.CreateProgress()))
             {
                 progress.Initialize(this);
                 _activeQuests.Add(progress);
                 
-                progress.OnProgressChanged += CheckAllObjectives;
+                progress.OnProgressChanged += () => {
+                    if (progress.IsReached) OnObjectiveCompleted?.Invoke();
+                    CheckAllObjectives();
+                };
             }
         }
 
