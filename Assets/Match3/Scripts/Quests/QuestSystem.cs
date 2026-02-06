@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Match3.Scripts.Quests
 {
-    public class QuestSystem
+    public class QuestSystem : MonoBehaviour
     {
         private List<QuestProgress> _activeQuests = new();
         
@@ -15,24 +15,38 @@ namespace Match3.Scripts.Quests
         public event Action<int> OnScoreUpdated;
         public event Action OnAllObjectivesReached;
         public event Action OnObjectiveCompleted;
+        public event Action<List<QuestProgress>> OnQuestsInitialized;
 
         public List<QuestProgress> ActiveQuests => _activeQuests;
         public int CompletedQuestsCount => _activeQuests.Count(q => q.IsReached);
 
         public void Initialize(List<QuestObjectiveSO> objectives)
         {
+            foreach (var quest in _activeQuests)
+            {
+                quest.Dispose();
+            }
+
             _activeQuests.Clear();
+
             foreach (var progress in objectives.Take(3).Select(obj => obj.CreateProgress()))
             {
                 progress.Initialize(this);
                 _activeQuests.Add(progress);
-                
-                progress.OnProgressChanged += () => {
-                    if (progress.IsReached) OnObjectiveCompleted?.Invoke();
+
+                progress.OnProgressChanged += () =>
+                {
+                    if (progress.IsReached)
+                        OnObjectiveCompleted?.Invoke();
+
                     CheckAllObjectives();
                 };
             }
+
+            OnQuestsInitialized?.Invoke(_activeQuests);
         }
+
+
 
         public void NotifyPieceDestroyed(PieceSO piece)
         {

@@ -1,4 +1,5 @@
 using Match3.Scripts.Data.Item;
+using Match3.Scripts.Quests;
 using UnityEngine;
 
 namespace Match3.Scripts.Data.Quests
@@ -19,6 +20,7 @@ namespace Match3.Scripts.Data.Quests
     {
         private readonly PieceDestructionObjectiveSO _so;
         private int _currentAmount;
+        private QuestSystem _questSystem;
 
         public PieceDestructionProgress(PieceDestructionObjectiveSO objective) : base(objective)
         {
@@ -29,9 +31,10 @@ namespace Match3.Scripts.Data.Quests
 
         public override string GetProgressFormatted() => $"{_currentAmount}/{_so.amountRequired}";
 
-        public override void Initialize(Match3.Scripts.Quests.QuestSystem questSystem)
+        public override void Initialize(QuestSystem questSystem)
         {
-            questSystem.OnPieceDestroyed += HandlePieceDestroyed;
+            _questSystem = questSystem;
+            _questSystem.OnPieceDestroyed += HandlePieceDestroyed;
         }
 
         private void HandlePieceDestroyed(PieceSO piece)
@@ -42,5 +45,12 @@ namespace Match3.Scripts.Data.Quests
                 OnProgressChanged?.Invoke();
             }
         }
+
+        public override void Dispose()
+        {
+            if (_questSystem != null)
+                _questSystem.OnPieceDestroyed -= HandlePieceDestroyed;
+        }
     }
+
 }

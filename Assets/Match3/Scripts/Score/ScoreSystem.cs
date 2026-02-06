@@ -5,12 +5,12 @@ using UnityEngine;
 
 namespace Match3.Scripts.Score
 {
-    public class ScoreSystem
+    public class ScoreSystem : MonoBehaviour
     {
         private int _currentScore;
         private float _currentMultiplier = 1f;
-        private readonly IScoreStrategy _strategy;
-        private readonly ScoreConfigurationSO _config;
+        private IScoreStrategy _strategy;
+        private ScoreConfigurationSO _config;
 
         public event Action<int> OnScoreChanged;
         public event Action<float> OnMultiplierChanged;
@@ -18,7 +18,7 @@ namespace Match3.Scripts.Score
         public int CurrentScore => _currentScore;
         public float CurrentMultiplier => _currentMultiplier;
 
-        public ScoreSystem(IScoreStrategy strategy, ScoreConfigurationSO config)
+        public void Init(IScoreStrategy strategy, ScoreConfigurationSO config)
         {
             _strategy = strategy;
             _config = config;
@@ -37,8 +37,14 @@ namespace Match3.Scripts.Score
         {
             int points = Mathf.RoundToInt(_config.BasePieceValue * _currentMultiplier);
             _currentScore += points;
+
+            Debug.Log($"[ScoreSystem] PieceClear x{_currentMultiplier} = {points} pts. Total: {_currentScore}");
+
             OnScoreChanged?.Invoke(_currentScore);
+            Debug.Log($"[ScoreSystem] OnScoreChanged invoked: {_currentScore}");
+
         }
+
 
         public void AddPowerUpActivationScore()
         {

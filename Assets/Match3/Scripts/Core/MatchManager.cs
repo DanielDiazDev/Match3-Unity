@@ -35,8 +35,8 @@ namespace Match3.Scripts.Core
         [SerializeField] private PowerUpSystem  _powerUpSystem;
         [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; 
         [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;
-        private ScoreSystem _scoreSystem;
-        private QuestSystem _questSystem;
+        [SerializeField] private ScoreSystem _scoreSystem;
+        [SerializeField] private QuestSystem _questSystem;
         private StarSystem _starSystem;
         private int _remainingMoves;
         public event Action<int> OnMovesChanged;
@@ -89,13 +89,11 @@ namespace Match3.Scripts.Core
             _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
             _pieceSwapper = new PieceSwapper(_gridSystem);
             _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _scoreSystem = new Score.ScoreSystem(new Score.Match3ScoreStrategy(), _scoreConfigurationSO);
-            _questSystem = new Quests.QuestSystem();
+            _scoreSystem.Init(new Score.Match3ScoreStrategy(), _scoreConfigurationSO);
             _questSystem.Initialize(_levelDataSO.quests);
             _scoreSystem.OnScoreChanged += (score) => _questSystem.NotifyScoreUpdated(score);
             
             _starSystem = new StarSystem(_levelDataSO, _scoreSystem, _questSystem);
-            // Victory check moved to end of RunGameLoop to avoid race condition
 
             _remainingMoves = _levelDataSO.maxMoves;
             OnMovesChanged?.Invoke(_remainingMoves);

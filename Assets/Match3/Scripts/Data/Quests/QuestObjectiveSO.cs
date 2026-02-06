@@ -24,5 +24,6 @@ namespace Match3.Scripts.Data.Quests
         }
 
         public abstract void Initialize(Match3.Scripts.Quests.QuestSystem questSystem);
+        public abstract void Dispose();
     }
 }
