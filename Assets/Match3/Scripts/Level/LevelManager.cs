@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Match3.Scripts.Data.Level;
 using Match3.Scripts.Persistence;
 using Match3.Scripts.ServiceLocator;
+using Match3.Scripts.Shop;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Match3.Scripts.Level
 {
@@ -18,10 +20,13 @@ namespace Match3.Scripts.Level
         private readonly LoadScene _loadScene = new LoadScene();
         private readonly List<LevelController> _controllers = new List<LevelController>();
         [SerializeField] private LevelDetailView _levelDetailView;
+        [SerializeField] private CanvasGroup _levelSelectorCanvasGroup;
+        [SerializeField] private Button _openShopButton;
         private readonly LevelDetailViewModel _levelDetailViewModel = new LevelDetailViewModel();
 
         private void Awake()
         {
+            ServiceLocator.ServiceLocator.Global.Register(_progressRepository);
             if(Instance == null)
             {
                 Instance = this;
@@ -31,11 +36,11 @@ namespace Match3.Scripts.Level
                 Destroy(gameObject);
             }
         }
+        
 
         private void Start()
         {
             GameData gameData;
-            ServiceLocator.ServiceLocator.Global.Register(_progressRepository);
             if (!_progressRepository.Exists())
             {
                 gameData = _progressRepository.CreateNewGame(_levelDataSos);
@@ -45,7 +50,26 @@ namespace Match3.Scripts.Level
                 gameData = _progressRepository.Load();
             }
 
+            _openShopButton.onClick.AddListener(OpenShop);
+
             GenerateLevels();
+        }
+
+        private void OpenShop()
+        {
+            SetLevelSelectorInteractable(false);
+            var shopManager = FindFirstObjectByType<ShopManager>();
+            if (shopManager != null)
+            {
+                shopManager.OpenShop();
+            }
+        }
+
+        public void SetLevelSelectorInteractable(bool interactable)
+        {
+            _openShopButton.gameObject.SetActive(interactable);
+            _levelSelectorCanvasGroup.interactable = interactable;
+            _levelSelectorCanvasGroup.blocksRaycasts = interactable;
         }
 
         private void GenerateLevels()

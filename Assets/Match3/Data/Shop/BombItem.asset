@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3bb0a04da1ec7042900bde8bca0757c, type: 3}
+  m_Name: BombItem
+  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Shop.ShopItemSO
+  id: BombItem
+  productName: BombItem
+  icon: {fileID: 21300000, guid: 2be55834e2ff7b144a243413f2979787, type: 3}
+  category: 0
+  powerUp: {fileID: 11400000, guid: 267a3f026bce4b84393c2f1ae113565d, type: 2}
+  price: 39
+  rewardType: 0
+  rewardAmount: 0

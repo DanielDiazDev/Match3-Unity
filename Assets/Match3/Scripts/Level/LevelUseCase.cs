@@ -35,6 +35,13 @@ public class LevelUseCase : ILevelUseCase
         if (!progress.unlocked)
             return;
 
+        if (gameData.hearts <= 0)
+        {
+            UnityEngine.Debug.LogWarning("Not enough hearts to start level!");
+            return;
+        }
+
+        gameData.hearts--;
         gameData.currentLevel = levelData.id;
         _progressRepository.Save(gameData);
 

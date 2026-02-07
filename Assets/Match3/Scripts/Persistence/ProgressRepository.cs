@@ -1,4 +1,7 @@
-﻿using Match3.Scripts.Data.Level;
+﻿using System;
+using System.Collections.Generic;
+using AYellowpaper.SerializedCollections;
+using Match3.Scripts.Data.Level;
 
 namespace Match3.Scripts.Persistence
 {
@@ -14,7 +17,8 @@ namespace Match3.Scripts.Persistence
                 coins = 0,
                 hearts = 5,
                 maxUnlockedLevel = 0,
-                levels = new LevelProgress[levelSOs.Length]
+                levels = new LevelProgress[levelSOs.Length],
+                lastHeartUpdateTick = DateTime.Now.Ticks
             };
 
             for (int i = 0; i < levelSOs.Length; i++)
@@ -27,6 +31,8 @@ namespace Match3.Scripts.Persistence
                     unlocked = i == 0 
                 };
             }
+            
+            data.purchasedPowerUps = new SerializedDictionary<string, int>();
 
             Save(data);
             return data;
@@ -40,10 +46,78 @@ namespace Match3.Scripts.Persistence
 
         public GameData Load()
         {
+            GameData data;
             if (!Exists())
-                return CreateDefault();
+                data = CreateDefault();
+            else
+                data = SaveSystem.Load<GameData>(FILE_NAME, true);
 
-            return SaveSystem.Load<GameData>(FILE_NAME, true);
+            if (data != null)
+            {
+                ApplyHeartRegeneration(data);
+            }
+
+            return data;
+        }
+
+        private void ApplyHeartRegeneration(GameData data)
+        {
+            const int MAX_HEARTS = 5;
+            const int MINUTES_PER_HEART = 30;
+            TimeSpan regenerationInterval = TimeSpan.FromMinutes(MINUTES_PER_HEART);
+
+            if (data.hearts >= MAX_HEARTS)
+            {
+                data.lastHeartUpdateTick = DateTime.Now.Ticks;
+                return;
+            }
+
+            DateTime lastUpdateTime = new DateTime(data.lastHeartUpdateTick);
+            DateTime now = DateTime.Now;
+            TimeSpan elapsed = now - lastUpdateTime;
+
+            if (elapsed >= regenerationInterval)
+            {
+                int heartsToAdd = (int)(elapsed.TotalMinutes / MINUTES_PER_HEART);
+                int newHearts = Math.Min(MAX_HEARTS, data.hearts + heartsToAdd);
+
+                if (newHearts > data.hearts)
+                {
+                    data.hearts = newHearts;
+                    // Update ticks to the time of the last added heart to avoid losing partial progress
+                    long usedTicks = heartsToAdd * regenerationInterval.Ticks;
+                    data.lastHeartUpdateTick = lastUpdateTime.Ticks + usedTicks;
+                    Save(data);
+                }
+            }
+        }
+
+        public void UpdateLevelProgress(int levelId, int stars, bool completed)
+        {
+            var data = Load();
+            for (int i = 0; i < data.levels.Length; i++)
+            {
+                if (data.levels[i].id == levelId)
+                {
+                    data.levels[i].stars = Math.Max(data.levels[i].stars, stars);
+                    data.levels[i].completed = data.levels[i].completed || completed;
+
+                    if (completed && i + 1 < data.levels.Length)
+                    {
+                        data.levels[i + 1].unlocked = true;
+                    }
+                    break;
+                }
+            }
+            Save(data);
+        }
+
+        public void SavePlayerData(int coins, int hearts)
+        {
+            var data = Load(); // Load applies regeneration first
+            data.coins = coins;
+            data.hearts = hearts;
+            Save(data);
         }
 
         public bool Exists()
@@ -73,8 +147,34 @@ namespace Match3.Scripts.Persistence
                 coins = 0,
                 hearts = 5,
                 maxUnlockedLevel = 0,
-                currentLevel = 1
+                currentLevel = 1,
+                lastHeartUpdateTick = DateTime.Now.Ticks,
+                purchasedPowerUps = new SerializedDictionary<string, int>()
             };
+        }
+
+        public void AddPowerUp(string id, int amount)
+        {
+            var gameData = Load();
+            if (gameData.purchasedPowerUps.ContainsKey(id))
+            {
+                gameData.purchasedPowerUps[id] += amount;
+            }
+            else
+            {
+                gameData.purchasedPowerUps.Add(id, amount);
+            }
+            Save(gameData);
+        }
+
+        public int GetPowerUpCount(string id)
+        {
+            var gameData = Load();
+            if (gameData.purchasedPowerUps != null && gameData.purchasedPowerUps.ContainsKey(id))
+            {
+                return gameData.purchasedPowerUps[id];
+            }
+            return 0;
         }
     }
 }

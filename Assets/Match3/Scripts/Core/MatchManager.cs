@@ -116,6 +116,9 @@ namespace Match3.Scripts.Core
         {
             _starSystem.ForceMinimumStar();
             Debug.Log($"[MatchManager] Level Win! Stars: {_starSystem.CurrentStars} | Final Star Power: {_starSystem.CurrentStarPower}");
+
+            var repository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
+            repository.UpdateLevelProgress(_levelDataSO.id, _starSystem.CurrentStars, true);
             
             if (_remainingMoves > 0)
             {
