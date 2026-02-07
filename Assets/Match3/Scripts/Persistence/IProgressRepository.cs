@@ -11,6 +11,8 @@ namespace Match3.Scripts.Persistence
         void Delete();
         void SavePlayerData(int coins, int hearts);
         void UpdateLevelProgress(int levelId, int stars, bool completed);
+        IReadOnlyDictionary<string, int> GetPurchasedPowerUps();
+        void ConsumePowerUp(string id);
         GameData CreateNewGame(LevelDataSO[] levelSOs);
         public LevelDataSO CurrentLevel { get; }
 

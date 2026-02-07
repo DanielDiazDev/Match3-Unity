@@ -120,6 +120,26 @@ namespace Match3.Scripts.Persistence
             Save(data);
         }
 
+        public IReadOnlyDictionary<string, int> GetPurchasedPowerUps()
+        {
+            var data = Load();
+            return data.purchasedPowerUps;
+        }
+
+        public void ConsumePowerUp(string id)
+        {
+            var data = Load();
+            if (data.purchasedPowerUps.ContainsKey(id))
+            {
+                data.purchasedPowerUps[id]--;
+                if (data.purchasedPowerUps[id] <= 0)
+                {
+                    data.purchasedPowerUps.Remove(id);
+                }
+                Save(data);
+            }
+        }
+
         public bool Exists()
         {
             return SaveSystem.Exists(FILE_NAME);

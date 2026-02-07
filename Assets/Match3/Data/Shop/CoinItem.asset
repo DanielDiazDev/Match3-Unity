@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3bb0a04da1ec7042900bde8bca0757c, type: 3}
   m_Name: CoinItem
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Shop.ShopItemSO
-  id: BombItem
-  productName: BombItem
-  icon: {fileID: 21300000, guid: 2be55834e2ff7b144a243413f2979787, type: 3}
-  category: 0
-  powerUp: {fileID: 11400000, guid: 267a3f026bce4b84393c2f1ae113565d, type: 2}
+  id: CoinItem
+  productName: CoinItem
+  icon: {fileID: 21300000, guid: 09edca69fa79b5a48bf2f8f1b352af19, type: 3}
+  category: 1
+  powerUp: {fileID: 0}
   price: 39
-  rewardType: 0
-  rewardAmount: 0
+  rewardType: 1
+  rewardAmount: 30

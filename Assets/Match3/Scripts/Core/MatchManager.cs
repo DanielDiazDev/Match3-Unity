@@ -18,6 +18,7 @@ using Match3.Scripts.Persistence;
 using Match3.Scripts.PowerUps;
 using Match3.Scripts.Quests;
 using Match3.Scripts.Score;
+using Match3.Scripts.UI.Inventory;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -38,9 +39,26 @@ namespace Match3.Scripts.Core
         [SerializeField] private ScoreSystem _scoreSystem;
         [SerializeField] private QuestSystem _questSystem;
         private StarSystem _starSystem;
+        [SerializeField] private InventoryView _inventoryView;
+        [SerializeField] private PowerUpSODatabase _powerUpDatabase;
+        
+        private InventoryViewModel _inventoryViewModel;
+        private InventoryController _inventoryController;
+        private InventoryPresenter _inventoryPresenter;
+        private UsePowerUpUseCase _usePowerUpUseCase;
+
         private int _remainingMoves;
         public event Action<int> OnMovesChanged;
+        public bool IsBusy => _isBusy;
         private bool _isBusy;
+        private void SetBusy(bool busy)
+        {
+            _isBusy = busy;
+            if (_inventoryViewModel != null)
+            {
+                _inventoryViewModel.IsBusy.Value = busy;
+            }
+        }
         [Header("DEBUG")]
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
         private GridObject _selectedCell;
@@ -53,6 +71,8 @@ namespace Match3.Scripts.Core
         private GravitySystem _gravitySystem;
         private MoveValidator _moveValidator;
         private ShuffleBoardSystem _shuffleBoardSystem;
+        private IProgressRepository _progressRepository;
+
         private void OnEnable()
         {
             _swipeDetector.OnSwipeDetected += OnSwipeItem;
@@ -104,6 +124,25 @@ namespace Match3.Scripts.Core
             _refillSystem = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform);
             _moveValidator = new MoveValidator(_gridSystem, _matchFinder);
             _shuffleBoardSystem = new ShuffleBoardSystem(_gridSystem, _matchFinder, _moveValidator);
+
+            InitializeInventory();
+        }
+
+        private void InitializeInventory()
+        {
+           // var progressRepository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
+           if (!ServiceLocator.ServiceLocator.Global.TryGet<IProgressRepository>(out var progressRepository) && _debug)
+           {
+               _progressRepository = progressRepository = new ProgressRepository();
+           }
+           _inventoryViewModel = new InventoryViewModel();
+           _inventoryView.Configure(_inventoryViewModel);
+            
+           _inventoryPresenter = new InventoryPresenter(_inventoryViewModel, progressRepository, _powerUpDatabase);
+           _inventoryController = new InventoryController(_inventoryViewModel);
+           _usePowerUpUseCase = new UsePowerUpUseCase(progressRepository, _powerUpSystem);
+
+           _inventoryPresenter.RefreshInventory();
         }
 
         private void HandleGameOver()
@@ -117,8 +156,8 @@ namespace Match3.Scripts.Core
             _starSystem.ForceMinimumStar();
             Debug.Log($"[MatchManager] Level Win! Stars: {_starSystem.CurrentStars} | Final Star Power: {_starSystem.CurrentStarPower}");
 
-            var repository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
-            repository.UpdateLevelProgress(_levelDataSO.id, _starSystem.CurrentStars, true);
+           // var repository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
+            _progressRepository.UpdateLevelProgress(_levelDataSO.id, _starSystem.CurrentStars, true);
             
             if (_remainingMoves > 0)
             {
@@ -192,8 +231,7 @@ namespace Match3.Scripts.Core
                 await UniTask.Delay(300);
             }
 
-            _isBusy = false;
-            Debug.Log("[MatchManager] Post-Game Sequence Finished.");
+            SetBusy(false);
         }
         private void InitializeGrid()
         {
@@ -216,6 +254,20 @@ namespace Match3.Scripts.Core
 
             if (!IsValidPosition(gridPos))
                 return;
+
+            if (!string.IsNullOrEmpty(_inventoryViewModel.SelectedPowerUpId.Value))
+            {
+                if (!_isBusy)
+                {
+                    SetBusy(true);
+                    _usePowerUpUseCase.Execute(_inventoryViewModel.SelectedPowerUpId.Value, gridPos);
+                    _inventoryController.Deselect();
+                    _inventoryPresenter.RefreshInventory();
+                    
+                    EndTurnSequence().Forget();
+                }
+                return;
+            }
 
             _selectedCell = _gridSystem.GetValue(gridPos.x, gridPos.y);
             _selectedCellDebug.Set(_selectedCell);
@@ -241,7 +293,7 @@ namespace Match3.Scripts.Core
             if (_isBusy)
                 return;
 
-            _isBusy = true;
+            SetBusy(true);
             _scoreSystem.ResetMultiplier();
             await _pieceSwapper.SwapTile(a, b);
 
@@ -270,7 +322,7 @@ namespace Match3.Scripts.Core
             if (!matches.Any() && !powerUpActivated)
             {
                 await _pieceSwapper.SwapTile(b, a);
-                _isBusy = false;
+                SetBusy(false);
                 return;
             }
 
@@ -280,33 +332,12 @@ namespace Match3.Scripts.Core
                 OnMovesChanged?.Invoke(_remainingMoves);
             }
 
-            //  Loop de cascadas
-            do
-            {
-                if (matches.Any())
-                {
-                    await _matchProcessor.ProcessMatches(matches, new List<Vector2Int> { a, b });
-                    await CommandQueue.Instance.WaitForAllCommands();
-                }
+            EndTurnSequence(new List<Vector2Int> { a, b }).Forget();
+        }
 
-                bool moved;
-                do
-                {
-                    moved = await _gravitySystem.ApplyGravity();
-                }
-                while (moved);
-
-                await _refillSystem.ApplyRefill();
-                await UniTask.Yield(); // Wait for transforms to update properly
-                ValidateBoard();
-                matches = _matchFinder.FindMatches(_gridSystem.GetAllPositions());
-                
-                if (matches.Any())
-                {
-                    _scoreSystem.IncrementMultiplier();
-                }
-            }
-            while (matches.Any());
+        private async UniTaskVoid EndTurnSequence(List<Vector2Int> initialMatches = null)
+        {
+            await ProcessCascades(initialMatches);
 
             bool isWin = _questSystem.ActiveQuests.All(q => q.IsReached);
 
@@ -324,7 +355,44 @@ namespace Match3.Scripts.Core
                 _shuffleBoardSystem.Shuffle();
             }
 
-            _isBusy = false;
+            SetBusy(false);
+        }
+
+        private async UniTask ProcessCascades(List<Vector2Int> initialMatchesPositions = null)
+        {
+            var matches = initialMatchesPositions != null 
+                ? _matchFinder.FindMatches(initialMatchesPositions) 
+                : _matchFinder.FindMatches(_gridSystem.GetAllPositions());
+
+            do
+            {
+                if (matches.Any())
+                {
+                    await _matchProcessor.ProcessMatches(matches, initialMatchesPositions);
+                    await CommandQueue.Instance.WaitForAllCommands();
+                }
+
+                bool moved;
+                do
+                {
+                    moved = await _gravitySystem.ApplyGravity();
+                }
+                while (moved);
+
+                await _refillSystem.ApplyRefill();
+                await UniTask.Yield(); // Wait for transforms to update properly
+                ValidateBoard();
+                
+                matches = _matchFinder.FindMatches(_gridSystem.GetAllPositions());
+
+                if (matches.Any())
+                {
+                    _scoreSystem.IncrementMultiplier();
+                }
+
+                initialMatchesPositions = null; // Clear initial positions for subsequent matches in cascade
+            }
+            while (matches.Any());
         }
 
         public void ValidateBoard()
@@ -349,7 +417,12 @@ namespace Match3.Scripts.Core
         
         private bool IsValidPosition(Vector2Int gridPosition) => gridPosition.x >= 0 && gridPosition.x < _levelDataSO.width && gridPosition.y >= 0 && gridPosition.y < _levelDataSO.height;
         private bool IsEmptyPosition(Vector2Int gridPosition) =>
-    _gridSystem.GetValue(gridPosition.x, gridPosition.y)?.GetPiece() == null;
+            _gridSystem.GetValue(gridPosition.x, gridPosition.y)?.GetPiece() == null;
+
+        private void OnDestroy()
+        {
+            _inventoryController?.Dispose();
+        }
     }
 }
 
