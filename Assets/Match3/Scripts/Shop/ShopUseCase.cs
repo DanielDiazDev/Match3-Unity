@@ -17,7 +17,7 @@ namespace Match3.Scripts.Shop
             _progressRepository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
         }
 
-        public bool Execute(ShopItemModel item)
+        public bool BuyPowerUp(ShopItemModel item)
         {
             if (!_player.CanAfford(item.Price))
                 return false;
@@ -33,7 +33,7 @@ namespace Match3.Scripts.Shop
             EventDispatcherService.Instance.Dispatch(_player);
             return true;
         }
-        public void ExecuteReward(ShopItemModel item)
+        public void GiveStats(ShopItemModel item)
         {
             if (item.RewardType == ShopRewardType.Coins)
                 _player.AddCoins(item.RewardAmount);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Match3.Scripts.Ads;
 using Match3.Scripts.Shop.Item;
 using UniRx;
 
@@ -46,12 +47,12 @@ namespace Match3.Scripts.Shop
 
             if (item.Category == (Item.ShopCategoryType)ShopCategoryType.PowerUps)
             {
-                _shopUseCase.Execute(item);
+                _shopUseCase.BuyPowerUp(item);
             }
             else
             {
-                // Aquí iría tu AdsService real
-                _shopUseCase.ExecuteReward(item);
+                AdController.Instance.ShowAds();
+                _shopUseCase.GiveStats(item);
             }
         }
 

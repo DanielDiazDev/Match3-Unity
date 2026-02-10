@@ -35,6 +35,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &8587474719262731046
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -80,6 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 140169fe467b8b649aa2541e0c8d6c09, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -89,7 +91,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &7106314850688277754
 MonoBehaviour:
@@ -100,6 +101,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 3781178874020844043}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cff3c9a5e66da9242a8461ae59f958b5, type: 3}
+  m_Script: {fileID: 11500000, guid: 0a318fc4fc9ab9c4d987462294a55894, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Piece.Layer

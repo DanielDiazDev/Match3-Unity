@@ -4,7 +4,7 @@ namespace Match3.Scripts.Shop
 {
     public interface IShopUseCase
     {
-        bool Execute(ShopItemModel item);
-        void ExecuteReward(ShopItemModel item);
+        bool BuyPowerUp(ShopItemModel item);
+        void GiveStats(ShopItemModel item);
     }
 }

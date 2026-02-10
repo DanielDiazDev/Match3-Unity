@@ -18,6 +18,7 @@ using Match3.Scripts.Persistence;
 using Match3.Scripts.PowerUps;
 using Match3.Scripts.Quests;
 using Match3.Scripts.Score;
+using Match3.Scripts.UI.EndGame;
 using Match3.Scripts.UI.Inventory;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -26,43 +27,34 @@ namespace Match3.Scripts.Core
 {
     public class MatchManager : MonoBehaviour
     {
+        public event Action<int> OnMovesChanged; //No va
         [SerializeField] private float _cellSize = 1f;
-        [SerializeField] private Vector3 _origin =  Vector3.zero;
         [SerializeField] private bool _debug = true;
-        [SerializeField] private SwipeDetector  _swipeDetector;
+        [SerializeField] private SwipeDetector  _swipeDetector;//No va
         [SerializeField] private LevelDataSO _levelDataSoTest;
+        [SerializeField] private PowerUpSystem  _powerUpSystem; //No va
+        [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; //No va
+        [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;//No va
+        [SerializeField] private ScoreSystem _scoreSystem;//No va
+        [SerializeField] private QuestSystem _questSystem;//No va
+        [SerializeField] private InventoryView _inventoryView;//No va
+        [SerializeField] private EndGameUI _endGameUI;//No va
+        [SerializeField] private PowerUpSODatabase _powerUpDatabase;//No va
+        [SerializeField] private List<TileSO> _availableTiles;//No va
+        [SerializeField] private GridObjectDebugView _selectedCellDebug;
+        private StarSystem _starSystem;
+        private InventoryViewModel _inventoryViewModel;//No va
+        private InventoryController _inventoryController;//No va
+        private InventoryPresenter _inventoryPresenter;//No va
+        private UsePowerUpUseCase _usePowerUpUseCase;//No va
+        private Vector3 _origin; 
+        private int _remainingMoves;//No va
         private LevelDataSO _levelDataSO;
         private GridSystem<GridObject>  _gridSystem;
-        [SerializeField] private PowerUpSystem  _powerUpSystem;
-        [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; 
-        [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;
-        [SerializeField] private ScoreSystem _scoreSystem;
-        [SerializeField] private QuestSystem _questSystem;
-        private StarSystem _starSystem;
-        [SerializeField] private InventoryView _inventoryView;
-        [SerializeField] private PowerUpSODatabase _powerUpDatabase;
-        
-        private InventoryViewModel _inventoryViewModel;
-        private InventoryController _inventoryController;
-        private InventoryPresenter _inventoryPresenter;
-        private UsePowerUpUseCase _usePowerUpUseCase;
-
-        private int _remainingMoves;
-        public event Action<int> OnMovesChanged;
         public bool IsBusy => _isBusy;
         private bool _isBusy;
-        private void SetBusy(bool busy)
-        {
-            _isBusy = busy;
-            if (_inventoryViewModel != null)
-            {
-                _inventoryViewModel.IsBusy.Value = busy;
-            }
-        }
-        [Header("DEBUG")]
-        [SerializeField] private GridObjectDebugView _selectedCellDebug;
         private GridObject _selectedCell;
-        [SerializeField] private List<TileSO> _availableTiles;
+        //TODO: Agregarle interface a los sistemas de gameplay
         private PieceSwapper _pieceSwapper;
         private RefillSystem _refillSystem;
         private PieceSpawner _pieceSpawner;
@@ -88,7 +80,7 @@ namespace Match3.Scripts.Core
         }
         private void Update()
         {
-            if (!_debug) return;
+            //if (!_debug) return;
 
             if (Touchscreen.current != null && Touchscreen.current.press.wasPressedThisFrame)
             {
@@ -105,11 +97,13 @@ namespace Match3.Scripts.Core
             {
                 _levelDataSO = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>().CurrentLevel;
             }
-            _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height, _cellSize, new Vector3(-_levelDataSO.width * _cellSize * 0.5f, -_levelDataSO.height * _cellSize * 0.5f, 0f), _debug);
+
+            _origin = new Vector3(-_levelDataSO.width * _cellSize * 0.5f, -_levelDataSO.height * _cellSize * 0.5f, 0f);
+            _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height, _cellSize, _origin, _debug);
             _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
             _pieceSwapper = new PieceSwapper(_gridSystem);
             _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _scoreSystem.Init(new Score.Match3ScoreStrategy(), _scoreConfigurationSO);
+            _scoreSystem.Init(new Match3ScoreStrategy(), _scoreConfigurationSO);
             _questSystem.Initialize(_levelDataSO.quests);
             _scoreSystem.OnScoreChanged += (score) => _questSystem.NotifyScoreUpdated(score);
             
@@ -127,7 +121,15 @@ namespace Match3.Scripts.Core
 
             InitializeInventory();
         }
-
+        private void SetBusy(bool busy)
+        {
+            _isBusy = busy;
+            if (_inventoryViewModel != null)
+            {
+                _inventoryViewModel.IsBusy.Value = busy;
+            }
+        }
+        //No va aca, installer o manager
         private void InitializeInventory()
         {
            // var progressRepository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
@@ -148,7 +150,7 @@ namespace Match3.Scripts.Core
         private void HandleGameOver()
         {
             Debug.Log("[MatchManager] Game Over! Moves finished without completing objectives.");
-            // TODO: Trigger Game Over UI
+            _endGameUI.ShowLose();
         }
 
         private async UniTask HandleLevelWin()
@@ -163,9 +165,11 @@ namespace Match3.Scripts.Core
             {
                 await ExecutePostGameSequence();
             }
-            // TODO: Trigger Win UI
+            
+            _endGameUI.ShowWin(_scoreSystem.CurrentScore, _starSystem.CurrentStars);
         }
 
+        //cUANDO cumplimos los objetivos y tenemos movimientos se auto juega
         private async UniTask ExecutePostGameSequence()
         {
             _isBusy = true;
@@ -239,9 +243,56 @@ namespace Match3.Scripts.Core
             {
                 for (var y = 0; y < _levelDataSO.height; y++)
                 {
-                    var tileSo = _levelDataSO.initialPieces[new Vector2Int(x, y)];
-                    var piece = _pieceSpawner.Spawn(tileSo.id, new Vector2Int(x, y), transform);
-                    piece.PlaySpawnAnimation();
+                    var position = new Vector2Int(x, y);
+                    GridObject gridObject = null;
+                    
+                    // 1. Check for Block
+                    if (_levelDataSO.initialBlocks.TryGetValue(position, out var blockSO))
+                    {
+                        // Spawn Block
+                        var blockGo = Instantiate(blockSO.prefab, transform);
+                        blockGo.transform.position = _gridSystem.GetWorldPositionCenter(x, y);
+                        var block = blockGo.GetComponent<Match3.Scripts.Pieces.Block>();
+                        block.Init(blockSO);
+
+                        // Create GridObject with Block
+                        gridObject = new GridObject(_gridSystem, x, y);
+                        gridObject.SetBlock(block);
+                        _gridSystem.SetValue(x, y, gridObject);
+                    }
+                    else
+                    {
+                        // 2. Spawn Piece if no Block
+                        // Note: If there's no initial piece defined but also no block, we might want to spawn a random one or leave empty/spawn from available.
+                        // Existing logic assumed initialPieces has everything. We'll stick to that but fall back or handle missing if needed.
+                        // Actually, standard match-3: if it's a valid cell, it usually has a piece unless it's a "hole" (no grid object) or has a block.
+                        // For now we assume if not Block, we try to load Piece.
+                        
+                        if (_levelDataSO.initialPieces.TryGetValue(position, out var tileSo))
+                        {
+                            var piece = _pieceSpawner.Spawn(tileSo.id, position, transform);
+                            piece.PlaySpawnAnimation();
+                            // Spawn creates and sets gridObject
+                            gridObject = _gridSystem.GetValue(x, y);
+                        }
+                        else
+                        {
+                             // Fallback: Create empty grid object if nothing defined (e.g. empty tile)
+                             gridObject = new GridObject(_gridSystem, x, y);
+                             _gridSystem.SetValue(x, y, gridObject);
+                        }
+                    }
+
+                    // 3. Check for Layer (can coexist with Piece or Block, though usually behind Piece)
+                    if (_levelDataSO.initialLayers.TryGetValue(position, out var layerSO))
+                    {
+                        var layerGo = Instantiate(layerSO.prefab, transform);
+                        layerGo.transform.position = _gridSystem.GetWorldPositionCenter(x, y);
+                        var layer = layerGo.GetComponent<Match3.Scripts.Pieces.Layer>();
+                        layer.Init(layerSO);
+
+                        gridObject.SetLayer(layer);
+                    }
                 }
             }
         }
@@ -257,15 +308,13 @@ namespace Match3.Scripts.Core
 
             if (!string.IsNullOrEmpty(_inventoryViewModel.SelectedPowerUpId.Value))
             {
-                if (!_isBusy)
-                {
-                    SetBusy(true);
-                    _usePowerUpUseCase.Execute(_inventoryViewModel.SelectedPowerUpId.Value, gridPos);
-                    _inventoryController.Deselect();
-                    _inventoryPresenter.RefreshInventory();
+                if (_isBusy) return;
+                SetBusy(true);
+                _usePowerUpUseCase.Execute(_inventoryViewModel.SelectedPowerUpId.Value, gridPos);
+                _inventoryController.Deselect();
+                _inventoryPresenter.RefreshInventory();
                     
-                    EndTurnSequence().Forget();
-                }
+                EndTurnSequence().Forget();
                 return;
             }
 
@@ -403,7 +452,13 @@ namespace Match3.Scripts.Core
                 if (cell.IsEmpty()) continue;
 
                 var expected = _gridSystem.GetWorldPositionCenter(pos.x, pos.y);
-                var actual = cell.GetPiece().transform.position;
+                var actualPiece = cell.GetPiece();
+                if (actualPiece == null)
+                {
+                    continue;
+                }
+
+                var actual = actualPiece.transform.position;
 
                 if (Vector3.Distance(expected, actual) > 0.05f) // Increased tolerance slightly
                 {

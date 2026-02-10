@@ -35,11 +35,18 @@ namespace Match3.Scripts.Shop
                 .AddTo(_disposables);
         }
 
-        public void Show() => gameObject.SetActive(true);
+        public void Show()
+        {
+            gameObject.SetActive(true);
+            _closeButton.gameObject.SetActive(true);
+            
+        }
+
         public void Hide()
         {
-            Match3.Scripts.Level.LevelManager.Instance.SetLevelSelectorInteractable(true);
+            Level.LevelManager.Instance.SetLevelSelectorInteractable(true);
             gameObject.SetActive(false);
+            _closeButton.gameObject.SetActive(false);
         }
 
         private void CreateItem(ShopItemViewModel vm)

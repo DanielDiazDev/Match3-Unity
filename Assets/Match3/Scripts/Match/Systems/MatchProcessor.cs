@@ -60,6 +60,20 @@ public class MatchProcessor
             foreach (var pos in match.positions)
             {
                 positionsToClear.Add(pos);
+
+                // Handle Layer Destruction
+                var cell = _grid.GetValue(pos.x, pos.y);
+                if (cell.HasLayer())
+                {
+                    cell.GetLayer().DestroyLayer();
+                    cell.ClearLayer();
+                }
+
+                // Handle Adjacent Block Destruction
+                CheckAndDamageBlock(pos.x + 1, pos.y);
+                CheckAndDamageBlock(pos.x - 1, pos.y);
+                CheckAndDamageBlock(pos.x, pos.y + 1);
+                CheckAndDamageBlock(pos.x, pos.y - 1);
             }
         }
 
@@ -97,6 +111,24 @@ public class MatchProcessor
             MatchShape.LShape => "Bomb",
             _ => null
         };
+    }
+
+    private void CheckAndDamageBlock(int x, int y)
+    {
+        if (_grid.IsValid(x, y))
+        {
+            var cell = _grid.GetValue(x, y);
+            if (cell.HasBlock())
+            {
+                var block = cell.GetBlock();
+                block.TakeDamage();
+                
+                if (block.CurrentHealth <= 0)
+                {
+                    cell.ClearBlock();
+                }
+            }
+        }
     }
 
     }

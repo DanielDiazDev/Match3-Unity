@@ -15,6 +15,10 @@ namespace Match3.Scripts.Data.Level
         public int height;
         [SerializedDictionary("Position", "Cell")]
         public SerializedDictionary<Vector2Int, TileSO> initialPieces = new();
+        [SerializedDictionary("Position", "Block")]
+        public SerializedDictionary<Vector2Int, BlockSO> initialBlocks = new();
+        [SerializedDictionary("Position", "Layer")]
+        public SerializedDictionary<Vector2Int, LayerSO> initialLayers = new();
         public List<TileSO> availableTiles = new();
         public List<QuestObjectiveSO> quests = new();
         public int maxMoves;
