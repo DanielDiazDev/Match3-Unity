@@ -154,10 +154,7 @@ MonoBehaviour:
   _powerUpSystem: {fileID: 1328914920}
   _piecesConfigurationSO: {fileID: 11400000, guid: 6eef64a83c5b8eb4bb41e5db588e776b, type: 2}
   _scoreConfigurationSO: {fileID: 11400000, guid: dea8cecda7430c24991184da18e7bb26, type: 2}
-  _scoreSystem: {fileID: 546183780}
-  _questSystem: {fileID: 1153446248}
   _inventoryView: {fileID: 196517731}
-  _endGameUI: {fileID: 695132666}
   _powerUpDatabase: {fileID: 11400000, guid: 0f4a33b9593df4a40a4cc80cf3c9ecaf, type: 2}
   _availableTiles:
   - {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
@@ -889,50 +886,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &546183778
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 546183779}
-  - component: {fileID: 546183780}
-  m_Layer: 0
-  m_Name: ScoreSystem
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &546183779
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 546183778}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 642895361}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &546183780
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 546183778}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d7bf3f844b687c4ab51ec2e047db74a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Score.ScoreSystem
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -1050,8 +1003,6 @@ Transform:
   - {fileID: 1922849796}
   - {fileID: 1328914921}
   - {fileID: 136975177}
-  - {fileID: 546183779}
-  - {fileID: 1153446249}
   - {fileID: 1290120559}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1469,50 +1420,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1011015169}
   m_CullTransparentMesh: 1
---- !u!1 &1153446247
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1153446249}
-  - component: {fileID: 1153446248}
-  m_Layer: 0
-  m_Name: QuestSystem
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1153446248
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1153446247}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ed0a69e4ff63664abfb01696a5813ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Quests.QuestSystem
---- !u!4 &1153446249
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1153446247}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 642895361}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1183978363
 GameObject:
   m_ObjectHideFlags: 0
@@ -2471,7 +2378,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.UI.Score.ScoreView
   _scoreText: {fileID: 1309153284}
-  _scoreSystem: {fileID: 546183780}
 --- !u!114 &1741088977
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2917,7 +2823,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Quest.QuestView
   _objectivePrefab: {fileID: 2150873896472759056, guid: 38b6f521fba36a4408532401880021ca, type: 3}
   _container: {fileID: 1978790324}
-  _questSystem: {fileID: 1153446248}
 --- !u!114 &1978790326
 MonoBehaviour:
   m_ObjectHideFlags: 0

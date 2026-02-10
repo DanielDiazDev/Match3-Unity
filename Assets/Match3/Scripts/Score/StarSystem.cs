@@ -1,34 +1,42 @@
 using System;
 using Match3.Scripts.Data.Level;
+using Match3.Scripts.Event;
+using Match3.Scripts.Event.Data;
 using Match3.Scripts.Quests;
 using UnityEngine;
 
 namespace Match3.Scripts.Score
 {
-    public class StarSystem
+    public class StarSystem : IDisposable, IEventObserver
     {
         private readonly LevelDataSO _levelData;
-        private readonly ScoreSystem _scoreSystem;
-        private readonly QuestSystem _questSystem;
-
+        private IQuestSystem _questSystem;
+        private IScoreSystem _scoreSystem;
         public event Action<int> OnStarPowerChanged;
         public event Action<int> OnStarReached;
 
         public int CurrentStarPower { get; private set; }
         public int CurrentStars { get; private set; }
 
-        public StarSystem(LevelDataSO levelData, ScoreSystem scoreSystem, QuestSystem questSystem)
+        public void Process(EventData eventData)
+        {
+            if (eventData.EventId == EventIds.ObjectiveCompleted)
+            {
+                HandleObjectiveCompleted();
+            }
+        }
+        public StarSystem(LevelDataSO levelData, IQuestSystem questSystem, IScoreSystem scoreSystem)
         {
             _levelData = levelData;
-            _scoreSystem = scoreSystem;
             _questSystem = questSystem;
-
-            _scoreSystem.OnScoreChanged += HandleScoreChanged;
-            _questSystem.OnObjectiveCompleted += HandleObjectiveCompleted;
+            _scoreSystem = scoreSystem;
+            EventQueue.Instance.Subscribe(EventIds.ObjectiveCompleted, this);
+            
         }
 
         private void HandleScoreChanged(int score)
         {
+           
             UpdateStarPower();
         }
 
@@ -39,9 +47,9 @@ namespace Match3.Scripts.Score
 
         private void UpdateStarPower()
         {
-            int score = _scoreSystem.CurrentScore;
-            int completedQuests = _questSystem.CompletedQuestsCount;
-            int totalBonus = completedQuests * _levelData.objectiveBonus;
+            var score = _scoreSystem.CurrentScore;
+            var completedQuests = _questSystem.CompletedQuestsCount;
+            var totalBonus = completedQuests * _levelData.objectiveBonus;
 
             CurrentStarPower = score + totalBonus;
             
@@ -82,5 +90,12 @@ namespace Match3.Scripts.Score
                 OnStarReached?.Invoke(CurrentStars);
             }
         }
+
+        public void Dispose() // TODO Alguien lo tiene que llamar
+        {
+            EventQueue.Instance.Unsubscribe(EventIds.ObjectiveCompleted, this);
+        }
+
+        
     }
 }

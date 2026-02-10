@@ -3,25 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.Data.Quests;
+using Match3.Scripts.Event;
+using Match3.Scripts.Event.Data;
 using UnityEngine;
 
 namespace Match3.Scripts.Quests
 {
-    public class QuestSystem : MonoBehaviour
+    public class QuestSystem : IQuestSystem, IEventObserver, IDisposable
     {
         private List<QuestProgress> _activeQuests = new();
         
         public event Action<PieceSO> OnPieceDestroyed;
-        public event Action<int> OnScoreUpdated;
-        public event Action OnAllObjectivesReached;
-        public event Action OnObjectiveCompleted;
-        public event Action<List<QuestProgress>> OnQuestsInitialized;
+        // public event Action OnAllObjectivesReached;
+        // public event Action<List<QuestProgress>> OnQuestsInitialized;
 
         public List<QuestProgress> ActiveQuests => _activeQuests;
         public int CompletedQuestsCount => _activeQuests.Count(q => q.IsReached);
 
-        public void Initialize(List<QuestObjectiveSO> objectives)
+
+        public void Process(EventData eventData)
         {
+            
+        }
+        public QuestSystem(List<QuestObjectiveSO> objectives)
+        {
+            EventQueue.Instance.Subscribe(EventIds.ScoreChanged, this);
             foreach (var quest in _activeQuests)
             {
                 quest.Dispose();
@@ -37,13 +43,13 @@ namespace Match3.Scripts.Quests
                 progress.OnProgressChanged += () =>
                 {
                     if (progress.IsReached)
-                        OnObjectiveCompleted?.Invoke();
+                        EventQueue.Instance.EnqueueEvent(new EventData(EventIds.ObjectiveCompleted));
 
                     CheckAllObjectives();
                 };
             }
-
-            OnQuestsInitialized?.Invoke(_activeQuests);
+            var questsInitializedEventData = new QuestsInitializedEventData(EventIds.QuestsInitialized, _activeQuests);
+            EventQueue.Instance.EnqueueEvent(questsInitializedEventData);
         }
 
 
@@ -53,10 +59,10 @@ namespace Match3.Scripts.Quests
             OnPieceDestroyed?.Invoke(piece);
         }
 
-        public void NotifyScoreUpdated(int score)
-        {
-            OnScoreUpdated?.Invoke(score);
-        }
+        // public void NotifyScoreUpdated(int score)
+        // {
+        //     OnScoreUpdated?.Invoke(score);
+        // }
 
         private void CheckAllObjectives()
         {
@@ -66,7 +72,13 @@ namespace Match3.Scripts.Quests
             }
             
             Debug.Log("[QuestSystem] All objectives reached!");
-            OnAllObjectivesReached?.Invoke();
+            EventQueue.Instance.EnqueueEvent(new EventData(EventIds.AllObjectivesReached));
+        }
+
+
+        public void Dispose()
+        {
+            EventQueue.Instance.Unsubscribe(EventIds.ScoreChanged, this);
         }
     }
 }

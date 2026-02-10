@@ -3,7 +3,6 @@ using Cysharp.Threading.Tasks;
 using Match3.Scripts.Data;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.Grid;
-using Match3.Scripts.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,6 @@ using Match3.Scripts.Event.Data;
 using Match3.Scripts.General;
 using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
-using Match3.Scripts.Match.Systems.Shapes;
 using Match3.Scripts.Match.Systems.Spawner;
 using Match3.Scripts.Persistence;
 using Match3.Scripts.PowerUps;
@@ -36,10 +34,9 @@ namespace Match3.Scripts.Core
         [SerializeField] private PowerUpSystem  _powerUpSystem; //No va
         [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; //No va
         [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;//No va
-        [SerializeField] private ScoreSystem _scoreSystem;//No va
-        [SerializeField] private QuestSystem _questSystem;//No va
+        private IScoreSystem _scoreSystem;//No va
+        private IQuestSystem _questSystem;//No va
         [SerializeField] private InventoryView _inventoryView;//No va
-        [SerializeField] private EndGameUI _endGameUI;//No va
         [SerializeField] private PowerUpSODatabase _powerUpDatabase;//No va
         [SerializeField] private List<TileSO> _availableTiles;//No va
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
@@ -111,11 +108,9 @@ namespace Match3.Scripts.Core
             _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
             _pieceSwapper = new PieceSwapper(_gridSystem);
             _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _scoreSystem.Init(new Match3ScoreStrategy(), _scoreConfigurationSO);
-            _questSystem.Initialize(_levelDataSO.quests);
-            _scoreSystem.OnScoreChanged += (score) => _questSystem.NotifyScoreUpdated(score);
-            
-            _starSystem = new StarSystem(_levelDataSO, _scoreSystem, _questSystem);
+            _scoreSystem = new ScoreSystem(new Match3ScoreStrategy(), _scoreConfigurationSO);
+            _questSystem = new QuestSystem(_levelDataSO.quests);
+            _starSystem = new StarSystem(_levelDataSO, _questSystem, _scoreSystem);
 
             _remainingMoves = _levelDataSO.maxMoves;
             OnMovesChanged?.Invoke(_remainingMoves);
@@ -158,7 +153,7 @@ namespace Match3.Scripts.Core
         private void HandleGameOver()
         {
             Debug.Log("[MatchManager] Game Over! Moves finished without completing objectives.");
-            _endGameUI.ShowLose();
+            EventQueue.Instance.EnqueueEvent(new EventData(EventIds.ShowLose));
         }
 
         private async UniTask HandleLevelWin()
@@ -173,8 +168,10 @@ namespace Match3.Scripts.Core
             {
                 await ExecutePostGameSequence();
             }
+
+            var showWinEventData = new ShowWinEventData(EventIds.ShowWin, _scoreSystem.CurrentScore, _starSystem.CurrentStars);
+            EventQueue.Instance.EnqueueEvent(showWinEventData);
             
-            _endGameUI.ShowWin(_scoreSystem.CurrentScore, _starSystem.CurrentStars);
         }
 
         //cUANDO cumplimos los objetivos y tenemos movimientos se auto juega

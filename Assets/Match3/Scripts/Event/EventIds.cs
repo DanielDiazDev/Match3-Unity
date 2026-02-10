@@ -2,6 +2,13 @@
 {
     public enum EventIds
     {
-        SwipeDetected
+        SwipeDetected,
+        ScoreChanged,
+        MultiplierChanged,
+        ObjectiveCompleted,
+        QuestsInitialized,
+        AllObjectivesReached,
+        ShowLose,
+        ShowWin
     }
 }

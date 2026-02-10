@@ -33,7 +33,6 @@ namespace Match3.Scripts.Event
         public void EnqueueEvent(EventData eventData)
         {
             _nextEvents.Enqueue(eventData);
-            Debug.Log($"Enqueued event {eventData.EventId} on frame {Time.frameCount}");
         }
 
         private void LateUpdate()
@@ -58,7 +57,6 @@ namespace Match3.Scripts.Event
 
         private void ProcessEvent(EventData eventData)
         {
-            Debug.Log($"Processing event {eventData.EventId} on frame {Time.frameCount}");
             if (_observers.TryGetValue(eventData.EventId, out var eventObservers))
             {
                 foreach (var eventObserver in eventObservers)

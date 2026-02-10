@@ -1,34 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
+using Match3.Scripts.Event;
+using Match3.Scripts.Event.Data;
 using Match3.Scripts.Score;
 
 namespace Match3.Scripts.UI.Score
 {
-    public class ScoreController : IDisposable
+    public class ScoreController : IDisposable, IEventObserver
     {
-        private readonly ScoreSystem _scoreSystem;
+       // private readonly ScoreSystem _scoreSystem;
         private readonly ScoreViewModel _viewModel;
         private readonly List<IDisposable> _disposables = new();
-
-        public ScoreController(ScoreSystem scoreSystem, ScoreViewModel viewModel)
+        
+        
+        public void Process(EventData eventData)
         {
-            _scoreSystem = scoreSystem;
+            switch (eventData.EventId)
+            {
+                case EventIds.ScoreChanged:
+                {
+                    var scoreChangedEventData = (ScoreChangedEventData)eventData;
+                    OnScoreChanged(scoreChangedEventData.Score);
+                    break;
+                }
+                case EventIds.MultiplierChanged:
+                {
+                    var multiplierScoreChangedEventData = (MultiplierScoreChangedEventData)eventData;
+                    OnMultiplierChanged(multiplierScoreChangedEventData.Score);
+                    break;
+                }
+                
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public ScoreController(ScoreViewModel viewModel)
+        {
             _viewModel = viewModel;
-
-            Bind();
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            _viewModel.Score.Value = _scoreSystem.CurrentScore;
-            _viewModel.Multiplier.Value = _scoreSystem.CurrentMultiplier;
-        }
-
-        private void Bind()
-        {
-            _scoreSystem.OnScoreChanged += OnScoreChanged;
-            _scoreSystem.OnMultiplierChanged += OnMultiplierChanged;
+            EventQueue.Instance.Subscribe(EventIds.ScoreChanged, this);
+            EventQueue.Instance.Subscribe(EventIds.MultiplierChanged, this);
+            _viewModel.Score.Value = 0;
+            _viewModel.Multiplier.Value = 0;
         }
 
         private void OnScoreChanged(int score)
@@ -43,8 +56,10 @@ namespace Match3.Scripts.UI.Score
 
         public void Dispose()
         {
-            _scoreSystem.OnScoreChanged -= OnScoreChanged;
-            _scoreSystem.OnMultiplierChanged -= OnMultiplierChanged;
+           EventQueue.Instance.Unsubscribe(EventIds.ScoreChanged, this);
+           EventQueue.Instance.Unsubscribe(EventIds.MultiplierChanged, this);
         }
+
+        
     }
 }

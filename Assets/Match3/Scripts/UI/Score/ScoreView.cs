@@ -10,14 +10,13 @@ namespace Match3.Scripts.UI.Score
     {
         [SerializeField] private TextMeshProUGUI _scoreText;
        // [SerializeField] private TextMeshProUGUI _multiplierText;
-        [SerializeField] private ScoreSystem _scoreSystem;
         private ScoreViewModel _viewModel;
         private ScoreController _controller;
 
         private void Start()
         {
             var viewModel = new ScoreViewModel();
-            _controller = new ScoreController(_scoreSystem, viewModel);
+            _controller = new ScoreController(viewModel);
             _disposables.Add(_controller);
             Configure(viewModel);
         }

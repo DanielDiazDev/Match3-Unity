@@ -15,7 +15,7 @@ namespace Match3.Scripts.Quest
         private void Start()
         {
             var viewModel = new QuestViewModel();
-            _questController = new QuestController(_questSystem, viewModel);
+            _questController = new QuestController(viewModel);
             _disposables.Add(_questController);
             Configure(viewModel);
         }

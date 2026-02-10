@@ -4,6 +4,8 @@ using Assets.Match3.Scripts.Grid;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.General;
 using Match3.Scripts.Grid;
+using Match3.Scripts.Quests;
+using Match3.Scripts.Score;
 using Match3.Scripts.Vfx;
 using PrimeTween;
 using UnityEngine;
@@ -13,11 +15,11 @@ namespace Match3.Scripts.PowerUps
     public class PowerUpSystem : MonoBehaviour
     {
         private GridSystem<GridObject> _gridSystem;
-        private Match3.Scripts.Score.ScoreSystem _scoreSystem;
-        private Match3.Scripts.Quests.QuestSystem _questSystem;
+        private IScoreSystem _scoreSystem;
+        private IQuestSystem _questSystem;
         [SerializeField] private PowerUpSODatabase _powerUpSoDatabase;
 
-        public void Init(GridSystem<GridObject> gridSystem, Match3.Scripts.Score.ScoreSystem scoreSystem, Match3.Scripts.Quests.QuestSystem questSystem)
+        public void Init(GridSystem<GridObject> gridSystem, IScoreSystem scoreSystem, IQuestSystem questSystem)
         {
             _gridSystem = gridSystem;
             _scoreSystem = scoreSystem;
@@ -51,7 +53,6 @@ namespace Match3.Scripts.PowerUps
             var powerUp = piece.pieceSo as PowerUpSO;
             
             _scoreSystem.AddPowerUpActivationScore();
-            // Consume the power-up piece
             gridObject.Clear();
             piece.OnDestroyed();
 

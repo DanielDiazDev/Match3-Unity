@@ -2,29 +2,40 @@
 using System.Collections.Generic;
 using System.Linq;
 using Match3.Scripts.Data.Quests;
+using Match3.Scripts.Event;
+using Match3.Scripts.Event.Data;
 using Match3.Scripts.Quest;
 using Match3.Scripts.Quests;
 
 namespace Match3.Scripts.UI.Quest
 {
-    public class QuestController : IDisposable
+    public class QuestController : IDisposable, IEventObserver
     {
-        private readonly QuestSystem _questSystem;
         private readonly QuestViewModel _viewModel;
+        private bool isInit;
 
-        public QuestController(QuestSystem questSystem, QuestViewModel viewModel)
+        public QuestController(QuestViewModel viewModel)
         {
-            _questSystem = questSystem;
             _viewModel = viewModel;
+            EventQueue.Instance.Subscribe(EventIds.QuestsInitialized, this);
+            EventQueue.Instance.Subscribe(EventIds.AllObjectivesReached, this);
 
-            Bind();
         }
-
-        private void Bind()
+        public void Process(EventData eventData)
         {
-            _questSystem.OnQuestsInitialized += HandleQuestsInitialized;
-            _questSystem.OnAllObjectivesReached += HandleAllObjectivesReached;
+            if (eventData.EventId == EventIds.QuestsInitialized)
+            {
+                isInit = true;
+                var questsInitializedEventData = (QuestsInitializedEventData)eventData;
+                HandleQuestsInitialized(questsInitializedEventData.questProgress);
+            }
+
+            if (eventData.EventId == EventIds.AllObjectivesReached)
+            {
+                HandleAllObjectivesReached();
+            }
         }
+        
 
         private void HandleQuestsInitialized(List<QuestProgress> progresses)
         {
@@ -58,8 +69,10 @@ namespace Match3.Scripts.UI.Quest
 
         public void Dispose()
         {
-            _questSystem.OnQuestsInitialized -= HandleQuestsInitialized;
-            _questSystem.OnAllObjectivesReached -= HandleAllObjectivesReached;
+            EventQueue.Instance.Unsubscribe(EventIds.QuestsInitialized, this);
+            EventQueue.Instance.Unsubscribe(EventIds.AllObjectivesReached, this);
         }
+
+        
     }
 }

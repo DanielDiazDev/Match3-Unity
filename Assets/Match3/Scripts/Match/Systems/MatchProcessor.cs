@@ -7,6 +7,7 @@ using Match3.Scripts.Grid;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.Match.Systems.Shapes;
 using Match3.Scripts.PowerUps;
+using Match3.Scripts.Score;
 using UnityEngine;
 
 public class MatchProcessor
@@ -14,9 +15,9 @@ public class MatchProcessor
     private GridSystem<GridObject> _grid;
     private PowerUpSystem _powerUpSystem;
     private MatchClassifier _classifier = new MatchClassifier();
-    private Match3.Scripts.Score.ScoreSystem _scoreSystem;
+    private IScoreSystem _scoreSystem;
 
-    public MatchProcessor(GridSystem<GridObject> grid, PowerUpSystem powerUpSystem, Match3.Scripts.Score.ScoreSystem scoreSystem)
+    public MatchProcessor(GridSystem<GridObject> grid, PowerUpSystem powerUpSystem, IScoreSystem scoreSystem)
     {
         _grid = grid;
         _powerUpSystem = powerUpSystem;
