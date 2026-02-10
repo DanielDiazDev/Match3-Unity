@@ -11,13 +11,13 @@ namespace Match3.Scripts.Match.Systems
     {
         private readonly GridSystem<GridObject> _gridSystem;
         private readonly MatchFinder _matchFinder;
+        private readonly List<Vector2Int> _tempPositions = new List<Vector2Int>(2);
 
         public MoveValidator(GridSystem<GridObject> gridSystem, MatchFinder matchFinder)
         {
             _gridSystem = gridSystem;
             _matchFinder = matchFinder;
         }
-
         public bool HasAnyValidMove()
         {
             foreach (var pos in _gridSystem.GetAllPositions())
@@ -31,7 +31,6 @@ namespace Match3.Scripts.Match.Systems
 
             return false;
         }
-
         private bool CheckSwap(Vector2Int a, Vector2Int dir)
         {
             var b = a + dir;

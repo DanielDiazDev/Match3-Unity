@@ -1,6 +1,5 @@
 using Assets.Match3.Scripts.Grid;
 using Cysharp.Threading.Tasks;
-using Match3.Scripts.Data;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.Grid;
 using System;
@@ -10,7 +9,6 @@ using Match3.Scripts.Data.Level;
 using Match3.Scripts.Data.Score;
 using Match3.Scripts.Event;
 using Match3.Scripts.Event.Data;
-using Match3.Scripts.General;
 using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.Match.Systems.Spawner;
@@ -18,7 +16,6 @@ using Match3.Scripts.Persistence;
 using Match3.Scripts.PowerUps;
 using Match3.Scripts.Quests;
 using Match3.Scripts.Score;
-using Match3.Scripts.UI.EndGame;
 using Match3.Scripts.UI.Inventory;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -58,6 +55,10 @@ namespace Match3.Scripts.Core
         private MoveValidator _moveValidator;
         private ShuffleBoardSystem _shuffleBoardSystem;
         private IProgressRepository _progressRepository;
+        private TurnFlowController _turnFlowController;
+        private BoardResolver _boardResolver;
+        private EndGameSequenceController _endGameController;
+        private bool _gameEnded;
         private void OnEnable()
         {
             EventQueue.Instance.Subscribe(EventIds.SwipeDetected, this);
@@ -117,7 +118,11 @@ namespace Match3.Scripts.Core
             _refillSystem = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform);
             _moveValidator = new MoveValidator(_gridSystem, _matchFinder);
             _shuffleBoardSystem = new ShuffleBoardSystem(_gridSystem, _matchFinder, _moveValidator);
-
+            _boardResolver =
+                new BoardResolver(_matchFinder, _matchProcessor, _gravitySystem, _refillSystem, _gridSystem);
+            _turnFlowController = new TurnFlowController(_pieceSwapper, _moveValidator, _boardResolver, _powerUpSystem,
+                _scoreSystem, _gridSystem, _matchFinder);
+            _endGameController = new EndGameSequenceController(_gridSystem, _powerUpSystem, _boardResolver);
             //InitializeInventory();
         }
         private void SetBusy(bool busy)
@@ -130,99 +135,6 @@ namespace Match3.Scripts.Core
         }
         //No va aca, installer o manager
        
-
-        private void HandleGameOver()
-        {
-            Debug.Log("[MatchManager] Game Over! Moves finished without completing objectives.");
-            EventQueue.Instance.EnqueueEvent(new EventData(EventIds.ShowLose));
-        }
-
-        private async UniTask HandleLevelWin()
-        {
-            _starSystem.ForceMinimumStar();
-            Debug.Log($"[MatchManager] Level Win! Stars: {_starSystem.CurrentStars} | Final Star Power: {_starSystem.CurrentStarPower}");
-
-           // var repository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
-            _progressRepository.UpdateLevelProgress(_levelDataSO.id, _starSystem.CurrentStars, true);
-            
-            if (_remainingMoves > 0)
-            {
-                await ExecutePostGameSequence();
-            }
-
-            var showWinEventData = new ShowWinEventData(EventIds.ShowWin, _scoreSystem.CurrentScore, _starSystem.CurrentStars);
-            EventQueue.Instance.EnqueueEvent(showWinEventData);
-            
-        }
-
-        //cUANDO cumplimos los objetivos y tenemos movimientos se auto juega
-        private async UniTask ExecutePostGameSequence()
-        {
-            _isBusy = true;
-            Debug.Log($"[MatchManager] Executing Post-Game Sequence for {_remainingMoves} remaining moves.");
-
-            while (_remainingMoves > 0)
-            {
-                _remainingMoves--;
-                OnMovesChanged?.Invoke(_remainingMoves);
-
-                // Pick a random piece type available in the grid
-                var allPieces = _gridSystem.GetAllPositions()
-                    .Select(pos => _gridSystem.GetValue(pos.x, pos.y).GetPiece())
-                    .Where(p => p != null)
-                    .ToList();
-
-                if (allPieces.Count == 0) break;
-
-                var randomPiece = allPieces[UnityEngine.Random.Range(0, allPieces.Count)];
-                var targetId = randomPiece.GetTile().id;
-
-                var positionsToDestroy = _gridSystem.GetAllPositions()
-                    .Where(pos => 
-                    {
-                        var p = _gridSystem.GetValue(pos.x, pos.y).GetPiece();
-                        return p != null && p.GetTile().id == targetId;
-                    })
-                    .ToList();
-
-                Debug.Log($"[MatchManager] Post-Game: Destroying {positionsToDestroy.Count} pieces of type {targetId}");
-
-                foreach (var pos in positionsToDestroy)
-                {
-                    _powerUpSystem.ClearCell(pos.x, pos.y);
-                }
-
-                await CommandQueue.Instance.WaitForAllCommands();
-                await UniTask.Delay(1000); // Small pause for visuals
-
-                // Wait for cascades and refills after each "move bonus"
-                bool matchesFound;
-                do
-                {
-                    bool moved;
-                    do
-                    {
-                        moved = await _gravitySystem.ApplyGravity();
-                    }
-                    while (moved);
-
-                    await _refillSystem.ApplyRefill();
-                    await UniTask.Yield();
-                    
-                    var matches = _matchFinder.FindMatches(_gridSystem.GetAllPositions());
-                    matchesFound = matches.Any();
-                    if (matchesFound)
-                    {
-                        await _matchProcessor.ProcessMatches(matches);
-                        await CommandQueue.Instance.WaitForAllCommands();
-                    }
-                } while (matchesFound);
-
-                await UniTask.Delay(300);
-            }
-
-            SetBusy(false);
-        }
         private void InitializeGrid()
         {
             for (var x = 0; x < _levelDataSO.width; x++) 
@@ -320,141 +232,86 @@ namespace Match3.Scripts.Core
             if (IsEmptyPosition(a) || IsEmptyPosition(b))
                 return;
 
-            RunGameLoop(a, b).Forget();
+            TryHandleMove(a, b).Forget();
         }
-
-        private async UniTaskVoid RunGameLoop(Vector2Int a, Vector2Int b)
+        private async UniTask TryHandleMove(Vector2Int a, Vector2Int b)
         {
-            if (_isBusy)
+            if (_isBusy || _gameEnded)
                 return;
 
             SetBusy(true);
-            _scoreSystem.ResetMultiplier();
-            await _pieceSwapper.SwapTile(a, b);
 
-            bool powerUpActivated = false;
-            var cellA = _gridSystem.GetValue(a.x, a.y);
-            var cellB = _gridSystem.GetValue(b.x, b.y);
+            bool validMove = await _turnFlowController.ExecuteMove(a, b);
 
-            if (cellA.HasPowerUp())
-            {
-                _powerUpSystem.TriggerPowerUp(a);
-                powerUpActivated = true;
-            }
-            if (cellB.HasPowerUp())
-            {
-                _powerUpSystem.TriggerPowerUp(b);
-                powerUpActivated = true;
-            }
-
-            if (powerUpActivated)
-            {
-                await CommandQueue.Instance.WaitForAllCommands();
-            }
-
-            var matches = _matchFinder.FindMatches(new List<Vector2Int> { a, b });
-
-            if (!matches.Any() && !powerUpActivated)
-            {
-                await _pieceSwapper.SwapTile(b, a);
-                SetBusy(false);
-                return;
-            }
-
-            if (matches.Any() || powerUpActivated)
+            if (validMove)
             {
                 _remainingMoves--;
                 OnMovesChanged?.Invoke(_remainingMoves);
             }
 
-            EndTurnSequence(new List<Vector2Int> { a, b }).Forget();
+            await EvaluateGameState();
+
+            SetBusy(false);
         }
-
-        private async UniTaskVoid EndTurnSequence(List<Vector2Int> initialMatches = null)
+        
+        private async UniTask EvaluateGameState()
         {
-            await ProcessCascades(initialMatches);
-
             bool isWin = _questSystem.ActiveQuests.All(q => q.IsReached);
 
             if (isWin)
             {
                 await HandleLevelWin();
+                return;
             }
-            else if (_remainingMoves <= 0)
+
+            if (_remainingMoves <= 0)
             {
                 HandleGameOver();
+                return;
             }
-            else if (!_moveValidator.HasAnyValidMove())
+
+            if (!_moveValidator.HasAnyValidMove())
             {
                 Debug.Log("⚠ No hay movimientos, reshuffle necesario");
                 _shuffleBoardSystem.Shuffle();
             }
-
-            SetBusy(false);
         }
 
-        private async UniTask ProcessCascades(List<Vector2Int> initialMatchesPositions = null)
+        private void HandleGameOver()
         {
-            var matches = initialMatchesPositions != null 
-                ? _matchFinder.FindMatches(initialMatchesPositions) 
-                : _matchFinder.FindMatches(_gridSystem.GetAllPositions());
-
-            do
-            {
-                if (matches.Any())
-                {
-                    await _matchProcessor.ProcessMatches(matches, initialMatchesPositions);
-                    await CommandQueue.Instance.WaitForAllCommands();
-                }
-
-                bool moved;
-                do
-                {
-                    moved = await _gravitySystem.ApplyGravity();
-                }
-                while (moved);
-
-                await _refillSystem.ApplyRefill();
-                await UniTask.Yield(); // Wait for transforms to update properly
-                ValidateBoard();
-                
-                matches = _matchFinder.FindMatches(_gridSystem.GetAllPositions());
-
-                if (matches.Any())
-                {
-                    _scoreSystem.IncrementMultiplier();
-                }
-
-                initialMatchesPositions = null; // Clear initial positions for subsequent matches in cascade
-            }
-            while (matches.Any());
+            Debug.Log("[MatchManager] Game Over! Moves finished without completing objectives.");
+            _gameEnded = true;
+            EventQueue.Instance.EnqueueEvent(new EventData(EventIds.ShowLose));
         }
 
-        public void ValidateBoard()
+        private async UniTask HandleLevelWin()
         {
-            foreach (var pos in _gridSystem.GetAllPositions())
+            _gameEnded = true;
+            _starSystem.ForceMinimumStar();
+
+            _progressRepository.UpdateLevelProgress(
+                _levelDataSO.id,
+                _starSystem.CurrentStars,
+                true);
+
+            if (_remainingMoves > 0)
             {
-                var cell = _gridSystem.GetValue(pos.x, pos.y);
-                if (cell.IsEmpty()) continue;
-
-                var expected = _gridSystem.GetWorldPositionCenter(pos.x, pos.y);
-                var actualPiece = cell.GetPiece();
-                if (actualPiece == null)
-                {
-                    continue;
-                }
-
-                var actual = actualPiece.transform.position;
-
-                if (Vector3.Distance(expected, actual) > 0.05f) // Increased tolerance slightly
-                {
-                    var piece = cell.GetPiece();
-                    Debug.LogError($"[MatchManager] Desync at {pos} | Piece: {piece.name} ({piece.pieceSo.id}) | Expected: {expected} | Actual: {actual} | Dist: {Vector3.Distance(expected, actual)}");
-                }
+                await _endGameController.ExecutePostGame(
+                    _remainingMoves,
+                    moves =>
+                    {
+                        _remainingMoves = moves;
+                        OnMovesChanged?.Invoke(_remainingMoves);
+                    });
             }
-        }
 
-        
+            var showWinEventData = new ShowWinEventData(
+                EventIds.ShowWin,
+                _scoreSystem.CurrentScore,
+                _starSystem.CurrentStars);
+
+            EventQueue.Instance.EnqueueEvent(showWinEventData);
+        }
         
         private bool IsValidPosition(Vector2Int gridPosition) => gridPosition.x >= 0 && gridPosition.x < _levelDataSO.width && gridPosition.y >= 0 && gridPosition.y < _levelDataSO.height;
         private bool IsEmptyPosition(Vector2Int gridPosition) =>
