@@ -41,10 +41,6 @@ namespace Match3.Scripts.Core
         [SerializeField] private List<TileSO> _availableTiles;//No va
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
         private StarSystem _starSystem;
-        private InventoryViewModel _inventoryViewModel;//No va
-        private InventoryController _inventoryController;//No va
-        private InventoryPresenter _inventoryPresenter;//No va
-        private UsePowerUpUseCase _usePowerUpUseCase;//No va
         private Vector3 _origin; 
         private int _remainingMoves;//No va
         private LevelDataSO _levelDataSO;
@@ -68,7 +64,6 @@ namespace Match3.Scripts.Core
         }
         private void OnDestroy()
         {
-            _inventoryController?.Dispose();
             EventQueue.Instance.Unsubscribe(EventIds.SwipeDetected, this);
         }
         public void Process(EventData eventData)
@@ -103,6 +98,7 @@ namespace Match3.Scripts.Core
                 _levelDataSO = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>().CurrentLevel;
             }
 
+            _progressRepository = new ProgressRepository();
             _origin = new Vector3(-_levelDataSO.width * _cellSize * 0.5f, -_levelDataSO.height * _cellSize * 0.5f, 0f);
             _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height, _cellSize, _origin, _debug);
             _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
@@ -122,33 +118,18 @@ namespace Match3.Scripts.Core
             _moveValidator = new MoveValidator(_gridSystem, _matchFinder);
             _shuffleBoardSystem = new ShuffleBoardSystem(_gridSystem, _matchFinder, _moveValidator);
 
-            InitializeInventory();
+            //InitializeInventory();
         }
         private void SetBusy(bool busy)
         {
             _isBusy = busy;
-            if (_inventoryViewModel != null)
-            {
-                _inventoryViewModel.IsBusy.Value = busy;
-            }
+            // if (_inventoryViewModel != null)
+            // {
+            //     _inventoryViewModel.IsBusy.Value = busy;
+            // }
         }
         //No va aca, installer o manager
-        private void InitializeInventory()
-        {
-           // var progressRepository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
-           if (!ServiceLocator.ServiceLocator.Global.TryGet<IProgressRepository>(out var progressRepository) && _debug)
-           {
-               _progressRepository = progressRepository = new ProgressRepository();
-           }
-           _inventoryViewModel = new InventoryViewModel();
-           _inventoryView.Configure(_inventoryViewModel);
-            
-           _inventoryPresenter = new InventoryPresenter(_inventoryViewModel, progressRepository, _powerUpDatabase);
-           _inventoryController = new InventoryController(_inventoryViewModel);
-           _usePowerUpUseCase = new UsePowerUpUseCase(progressRepository, _powerUpSystem);
-
-           _inventoryPresenter.RefreshInventory();
-        }
+       
 
         private void HandleGameOver()
         {
@@ -311,17 +292,17 @@ namespace Match3.Scripts.Core
             if (!IsValidPosition(gridPos))
                 return;
 
-            if (!string.IsNullOrEmpty(_inventoryViewModel.SelectedPowerUpId.Value))
-            {
-                if (_isBusy) return;
-                SetBusy(true);
-                _usePowerUpUseCase.Execute(_inventoryViewModel.SelectedPowerUpId.Value, gridPos);
-                _inventoryController.Deselect();
-                _inventoryPresenter.RefreshInventory();
-                    
-                EndTurnSequence().Forget();
-                return;
-            }
+            // if (!string.IsNullOrEmpty(_inventoryViewModel.SelectedPowerUpId.Value))
+            // {
+            //     if (_isBusy) return;
+            //     SetBusy(true);
+            //     _usePowerUpUseCase.Execute(_inventoryViewModel.SelectedPowerUpId.Value, gridPos);
+            //     _inventoryController.Deselect();
+            //     _inventoryPresenter.RefreshInventory();
+            //         
+            //     EndTurnSequence().Forget();
+            //     return;
+            // }
 
             _selectedCell = _gridSystem.GetValue(gridPos.x, gridPos.y);
             _selectedCellDebug.Set(_selectedCell);
