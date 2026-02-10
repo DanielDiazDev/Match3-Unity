@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Match3.Scripts.Data.Level;
 using Match3.Scripts.Data.Score;
+using Match3.Scripts.Event;
+using Match3.Scripts.Event.Data;
 using Match3.Scripts.General;
 using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
@@ -25,12 +27,11 @@ using UnityEngine.InputSystem;
 
 namespace Match3.Scripts.Core
 {
-    public class MatchManager : MonoBehaviour
+    public class MatchManager : MonoBehaviour, IEventObserver
     {
         public event Action<int> OnMovesChanged; //No va
         [SerializeField] private float _cellSize = 1f;
         [SerializeField] private bool _debug = true;
-        [SerializeField] private SwipeDetector  _swipeDetector;//No va
         [SerializeField] private LevelDataSO _levelDataSoTest;
         [SerializeField] private PowerUpSystem  _powerUpSystem; //No va
         [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; //No va
@@ -64,15 +65,22 @@ namespace Match3.Scripts.Core
         private MoveValidator _moveValidator;
         private ShuffleBoardSystem _shuffleBoardSystem;
         private IProgressRepository _progressRepository;
-
         private void OnEnable()
         {
-            _swipeDetector.OnSwipeDetected += OnSwipeItem;
+            EventQueue.Instance.Subscribe(EventIds.SwipeDetected, this);
         }
-        private void OnDisable()
+        private void OnDestroy()
         {
-            _swipeDetector.OnSwipeDetected -= OnSwipeItem;
+            _inventoryController?.Dispose();
+            EventQueue.Instance.Unsubscribe(EventIds.SwipeDetected, this);
         }
+        public void Process(EventData eventData)
+        {
+            if(eventData.EventId != EventIds.SwipeDetected) return;
+            var swipeDetectedEventData = (SwipeDetectedEventData)eventData;
+            OnSwipeItem(swipeDetectedEventData.worldStart, swipeDetectedEventData.direction);
+        }
+
         private void Start()
         {
             InitializeSystems();
@@ -474,10 +482,9 @@ namespace Match3.Scripts.Core
         private bool IsEmptyPosition(Vector2Int gridPosition) =>
             _gridSystem.GetValue(gridPosition.x, gridPosition.y)?.GetPiece() == null;
 
-        private void OnDestroy()
-        {
-            _inventoryController?.Dispose();
-        }
+        
+
+        
     }
 }
 

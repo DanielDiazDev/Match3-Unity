@@ -1,4 +1,6 @@
-﻿namespace Match3.Scripts.Event
+﻿using Match3.Scripts.Event.Data;
+
+namespace Match3.Scripts.Event
 {
     public interface IEventObserver
     {

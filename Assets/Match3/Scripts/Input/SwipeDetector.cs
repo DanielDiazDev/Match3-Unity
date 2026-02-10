@@ -1,4 +1,6 @@
 ﻿using System;
+using Match3.Scripts.Event;
+using Match3.Scripts.Event.Data;
 using UnityEngine;
 
 namespace Match3.Scripts.Input
@@ -53,7 +55,10 @@ namespace Match3.Scripts.Input
                     : (delta.y > 0 ? Vector2Int.up : Vector2Int.down);
 
             Vector2 worldStart = _camera.ScreenToWorldPoint(_startPosition);
-            OnSwipeDetected?.Invoke(worldStart, direction);
+            //OnSwipeDetected?.Invoke(worldStart, direction);
+            var swipeDetectedEventData = new SwipeDetectedEventData(EventIds.SwipeDetected, worldStart, direction);
+            EventQueue.Instance.EnqueueEvent(swipeDetectedEventData);
+            
         }
     }
 }

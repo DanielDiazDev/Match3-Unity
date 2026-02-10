@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Match3.Scripts.Event.Data;
 using UnityEngine;
 
 namespace Match3.Scripts.Event
 {
-    public class EventData
-    {
-        public readonly EventIds EventId;
-
-        public EventData(EventIds eventId)
-        {
-            EventId = eventId;
-        }
-    }
-
     public class EventQueue : MonoBehaviour
     {
         public static EventQueue Instance { get; private set; }
@@ -77,5 +67,5 @@ namespace Match3.Scripts.Event
                 }
             }
         }
-    } 
+    }
 }

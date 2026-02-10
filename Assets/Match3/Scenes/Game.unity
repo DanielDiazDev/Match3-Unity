@@ -150,7 +150,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Match3.Scripts.Core.MatchManager
   _cellSize: 0.5
   _debug: 1
-  _swipeDetector: {fileID: 1922849795}
   _levelDataSoTest: {fileID: 11400000, guid: d0174aea3cf46134291c0a3a5328c36f, type: 2}
   _powerUpSystem: {fileID: 1328914920}
   _piecesConfigurationSO: {fileID: 11400000, guid: 6eef64a83c5b8eb4bb41e5db588e776b, type: 2}
@@ -1053,6 +1052,7 @@ Transform:
   - {fileID: 136975177}
   - {fileID: 546183779}
   - {fileID: 1153446249}
+  - {fileID: 1290120559}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &695132664
@@ -1650,6 +1650,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1183978363}
   m_CullTransparentMesh: 1
+--- !u!1 &1290120558
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1290120559}
+  - component: {fileID: 1290120560}
+  m_Layer: 0
+  m_Name: EventQueue
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1290120559
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1290120558}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 642895361}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1290120560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1290120558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e18d9ad027c140f88f1db8c1a54afd25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Event.EventQueue
 --- !u!1 &1307051244
 GameObject:
   m_ObjectHideFlags: 0
