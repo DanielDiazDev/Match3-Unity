@@ -16,7 +16,7 @@ namespace Match3.Scripts.UI.EndGame
 
         private const string LEVEL_SELECTOR_SCENE = "LevelSelector";
 
-        private void OnEnable()
+        private void Start()
         {
             EventQueue.Instance.Subscribe(EventIds.ShowWin, this);
             EventQueue.Instance.Subscribe(EventIds.ShowLose, this);

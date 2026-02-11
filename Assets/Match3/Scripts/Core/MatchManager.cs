@@ -59,10 +59,7 @@ namespace Match3.Scripts.Core
         private BoardResolver _boardResolver;
         private EndGameSequenceController _endGameController;
         private bool _gameEnded;
-        private void OnEnable()
-        {
-            EventQueue.Instance.Subscribe(EventIds.SwipeDetected, this);
-        }
+        
         private void OnDestroy()
         {
             EventQueue.Instance.Unsubscribe(EventIds.SwipeDetected, this);
@@ -76,6 +73,7 @@ namespace Match3.Scripts.Core
 
         private void Start()
         {
+            EventQueue.Instance.Subscribe(EventIds.SwipeDetected, this);
             InitializeSystems();
             InitializeGrid();
         }
@@ -142,43 +140,32 @@ namespace Match3.Scripts.Core
                 for (var y = 0; y < _levelDataSO.height; y++)
                 {
                     var position = new Vector2Int(x, y);
-                    GridObject gridObject = null;
                     
-                    if (_levelDataSO.initialBlocks.TryGetValue(position, out var blockSO))
+                    if (!_levelDataSO.initialGridData.TryGetValue(position, out var cellData))
                     {
-                        var blockGo = Instantiate(blockSO.prefab, transform);
-                        blockGo.transform.position = _gridSystem.GetWorldPositionCenter(x, y);
-                        var block = blockGo.GetComponent<Pieces.Block>();
-                        block.Init(blockSO);
-
-                        gridObject = new GridObject(_gridSystem, x, y);
-                        gridObject.SetBlock(block);
+                        var gridObject = new GridObject(_gridSystem, x, y);
                         _gridSystem.SetValue(x, y, gridObject);
+                        continue;
+                    }
+
+                    if (cellData.block != null)
+                    {
+                        _pieceSpawner.SpawnBlock(cellData.block.id, position, transform);
+                    }
+                    else if (cellData.tile != null)
+                    {
+                        var piece = _pieceSpawner.Spawn(cellData.tile.id, position, transform);
+                        piece.PlaySpawnAnimation();
                     }
                     else
                     {
-                        
-                        if (_levelDataSO.initialPieces.TryGetValue(position, out var tileSo))
-                        {
-                            var piece = _pieceSpawner.Spawn(tileSo.id, position, transform);
-                            piece.PlaySpawnAnimation();
-                            gridObject = _gridSystem.GetValue(x, y);
-                        }
-                        else
-                        {
-                             gridObject = new GridObject(_gridSystem, x, y);
-                             _gridSystem.SetValue(x, y, gridObject);
-                        }
+                        var gridObject = new GridObject(_gridSystem, x, y);
+                        _gridSystem.SetValue(x, y, gridObject);
                     }
 
-                    if (_levelDataSO.initialLayers.TryGetValue(position, out var layerSO))
+                    if (cellData.layer != null)
                     {
-                        var layerGo = Instantiate(layerSO.prefab, transform);
-                        layerGo.transform.position = _gridSystem.GetWorldPositionCenter(x, y);
-                        var layer = layerGo.GetComponent<Match3.Scripts.Pieces.Layer>();
-                        layer.Init(layerSO);
-
-                        gridObject.SetLayer(layer);
+                        _pieceSpawner.SpawnLayer(cellData.layer.id, position, transform);
                     }
                 }
             }
@@ -230,7 +217,7 @@ namespace Match3.Scripts.Core
 
             SetBusy(true);
 
-            bool validMove = await _turnFlowController.ExecuteMove(a, b);
+            var validMove = await _turnFlowController.ExecuteMove(a, b);
 
             if (validMove)
             {

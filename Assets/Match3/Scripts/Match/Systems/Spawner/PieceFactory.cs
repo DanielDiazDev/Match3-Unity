@@ -20,5 +20,21 @@ namespace Match3.Scripts.Match.Systems.Spawner
             piece.Init(pieceSo);
             return piece;
         }
+
+        public Block CreateBlock(string id, Vector2 position, Transform parent)
+        {
+            var blockSo = _piecesConfigurationSO.GetBlockById(id);
+            var block = Object.Instantiate(blockSo.prefab, position, Quaternion.identity, parent).GetComponent<Block>();
+            block.Init(blockSo);
+            return block;
+        }
+
+        public Layer CreateLayer(string id, Vector2 position, Transform parent)
+        {
+            var layerSo = _piecesConfigurationSO.GetLayerById(id);
+            var layer = Object.Instantiate(layerSo.prefab, position, Quaternion.identity, parent).GetComponent<Layer>();
+            layer.Init(layerSo);
+            return layer;
+        }
     }
 }

@@ -13,12 +13,8 @@ namespace Match3.Scripts.Data.Level
         public string levelName;
         public int width;
         public int height;
-        [SerializedDictionary("Position", "Cell")]
-        public SerializedDictionary<Vector2Int, TileSO> initialPieces = new();
-        [SerializedDictionary("Position", "Block")]
-        public SerializedDictionary<Vector2Int, BlockSO> initialBlocks = new();
-        [SerializedDictionary("Position", "Layer")]
-        public SerializedDictionary<Vector2Int, LayerSO> initialLayers = new();
+        [SerializedDictionary("Position", "Data")]
+        public SerializedDictionary<Vector2Int, LevelCellData> initialGridData = new();
         public List<TileSO> availableTiles = new();
         public List<QuestObjectiveSO> quests = new();
         public int maxMoves;
@@ -29,5 +25,13 @@ namespace Match3.Scripts.Data.Level
         public int objectiveBonus = 500;
         
         public Sprite background;
+    }
+
+    [System.Serializable]
+    public class LevelCellData
+    {
+        public TileSO tile;
+        public BlockSO block;
+        public LayerSO layer;
     }
 }
