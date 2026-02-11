@@ -2,7 +2,6 @@
 using System.Linq;
 using Assets.Match3.Scripts.Grid;
 using Cysharp.Threading.Tasks;
-using Match3.Scripts.Data;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.Data.Level;
 using Match3.Scripts.Grid;
@@ -28,53 +27,62 @@ namespace Match3.Scripts.Match.Systems
 
         public async UniTask ApplyRefill()
         {
-            var tweens = new List<Tween>();
+            Sequence sequence = default;
+            bool sequenceCreated = false;
 
             for (int x = 0; x < _gridSystem.Width; x++)
             {
                 int missingCount = 0;
+
                 for (int y = 0; y < _gridSystem.Height; y++)
                 {
                     var cell = _gridSystem.GetValue(x, y);
-                    if (cell.IsEmpty())
+
+                    if (!cell.IsEmpty())
+                        continue;
+
+                    missingCount++;
+
+                    var validPieces = GetValidPiecesForPosition(x, y);
+
+                    PieceSO selected = validPieces.Count > 0
+                        ? validPieces[Random.Range(0, validPieces.Count)]
+                        : _levelDataSO.availableTiles[Random.Range(0, _levelDataSO.availableTiles.Count)];
+
+                    var piece = _pieceSpawner.Spawn(selected.id, new Vector2Int(x, y), _parent);
+
+                    var targetPos = _gridSystem.GetWorldPositionCenter(x, y);
+                    var startPos = targetPos + Vector3.up * (_gridSystem.Height - y + missingCount);
+
+                    piece.transform.position = startPos;
+
+                    var tween = Tween.Position(
+                        piece.transform,
+                        targetPos,
+                        0.4f,
+                        Ease.OutBounce);
+
+                    if (!sequenceCreated)
                     {
-                        missingCount++;
-                        var validPieces = GetValidPiecesForPosition(x, y);
-
-                        PieceSO selected = validPieces.Count > 0
-                            ? validPieces[Random.Range(0, validPieces.Count)]
-                            : _levelDataSO.availableTiles[Random.Range(0, _levelDataSO.availableTiles.Count)];
-                        
-                        var piece = _pieceSpawner.Spawn(selected.id, new Vector2Int(x, y), _parent);
-                        
-                        // Set start position above the grid
-                        var targetPos = _gridSystem.GetWorldPositionCenter(x, y);
-                        var startPos = targetPos + Vector3.up * (_gridSystem.Height - y + missingCount);
-                        piece.transform.position = startPos;
-
-                        tweens.Add(Tween.Position(piece.transform, targetPos, 0.4f, Ease.OutBounce));
-                        piece.PlaySpawnAnimation();
+                        sequence = Sequence.Create();
+                        sequenceCreated = true;
                     }
+
+                    sequence.Group(tween);
+
+                    piece.PlaySpawnAnimation();
                 }
             }
 
-            if (tweens.Count > 0)
+            if (sequenceCreated)
             {
-                await UniTask.WhenAll(tweens.Select(t => t.ToUniTask()));
+                await sequence; 
             }
         }
 
         private List<PieceSO> GetValidPiecesForPosition(int x, int y)
         {
-            var result = new List<PieceSO>();
-
-            foreach (var piece in _levelDataSO.availableTiles)
-            {
-                if (!CreatesMatch(x, y, piece))
-                    result.Add(piece);
-            }
-
-            return result;
+            return _levelDataSO.availableTiles.Where(piece => !CreatesMatch(x, y, piece)).Cast<PieceSO>().ToList();
         }
 
         private bool CreatesMatch(int x, int y, TileSO candidate)
