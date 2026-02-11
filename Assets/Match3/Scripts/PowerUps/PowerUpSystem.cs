@@ -75,7 +75,7 @@ namespace Match3.Scripts.PowerUps
             _questSystem.NotifyPieceDestroyed(piece.GetTile());
             piece.OnDestroyed();
             gridObject.Clear();
-            ParticleManager.Instance.Play("NormalDestroy", piece.transform.position, Quaternion.identity);
+            //ParticleManager.Instance.Play("NormalDestroy", piece.transform.position, Quaternion.identity);
         }
     }
 }

@@ -1,15 +1,23 @@
 using Match3.Scripts.Data.Item;
+using Match3.Scripts.General;
 using PrimeTween;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Match3.Scripts.Pieces
 {
-    public class Block : MonoBehaviour
+    public class Block : MonoBehaviour, IPoolable
     {
         public BlockSO BlockData { get; private set; }
         public int CurrentHealth { get; private set; }
 
         private SpriteRenderer _spriteRenderer;
+        private IObjectPool<Block> _pool;
+
+        public void SetPool(IObjectPool<Block> pool)
+        {
+            _pool = pool;
+        }
 
         public void Init(BlockSO data)
         {
@@ -45,8 +53,19 @@ namespace Match3.Scripts.Pieces
 
         public void DestroyBlock()
         {
-             Tween.Scale(transform, Vector3.zero, 0.2f, Ease.InBack)
-                .OnComplete(() => Destroy(gameObject));
+            Tween.Scale(transform, Vector3.zero, 0.2f, Ease.InBack)
+                .OnComplete(() => _pool.Release(this));
+        }
+
+        public void OnSpawned()
+        {
+            transform.localScale = Vector3.one;
+            gameObject.SetActive(true);
+        }
+
+        public void OnDespawned()
+        {
+            gameObject.SetActive(false);
         }
     }
 }
