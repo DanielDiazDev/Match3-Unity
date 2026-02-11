@@ -34,15 +34,30 @@ namespace Match3.Scripts.Match.Systems
         private bool CheckSwap(Vector2Int a, Vector2Int dir)
         {
             var b = a + dir;
-            if (!_gridSystem.IsValid(b.x, b.y)) 
+
+            if (!_gridSystem.IsValid(b.x, b.y))
+                return false;
+
+            var cellA = _gridSystem.GetValue(a.x, a.y);
+            var cellB = _gridSystem.GetValue(b.x, b.y);
+
+            if (cellA.IsEmpty() || cellB.IsEmpty())
+                return false;
+
+            if (!cellA.GetPiece() || !cellB.GetPiece())
                 return false;
 
             Swap(a, b);
-            bool hasMatch = _matchFinder.FindMatches(new List<Vector2Int> { a, b }).Any();
+
+            bool hasMatch = _matchFinder
+                .FindMatches(new List<Vector2Int> { a, b })
+                .Any();
+
             Swap(b, a);
 
             return hasMatch;
         }
+
 
         private void Swap(Vector2Int a, Vector2Int b)
         {

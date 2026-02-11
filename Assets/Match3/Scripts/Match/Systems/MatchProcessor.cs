@@ -34,20 +34,16 @@ public class MatchProcessor
             if (match.positions.Count < 3)
                 continue;
 
-            ClassifiedMatch classified = _classifier.Classify(match);
+            var classified = _classifier.Classify(match);
             _scoreSystem.AddMatchScore(classified);
-            Vector2Int powerUpPosition = classified.center;
+            var powerUpPosition = classified.center;
 
-            // If we have center hints (from a swap), use the hint that is part of this match
             if (centerHints != null)
             {
-                foreach (var hint in centerHints)
+                foreach (var hint in centerHints.Where(hint => match.positions.Contains(hint)))
                 {
-                    if (match.positions.Contains(hint))
-                    {
-                        powerUpPosition = hint;
-                        break;
-                    }
+                    powerUpPosition = hint;
+                    break;
                 }
             }
 
@@ -62,7 +58,6 @@ public class MatchProcessor
             {
                 positionsToClear.Add(pos);
 
-                // Handle Layer Destruction
                 var cell = _grid.GetValue(pos.x, pos.y);
                 if (cell.HasLayer())
                 {
@@ -70,7 +65,6 @@ public class MatchProcessor
                     cell.ClearLayer();
                 }
 
-                // Handle Adjacent Block Destruction
                 CheckAndDamageBlock(pos.x + 1, pos.y);
                 CheckAndDamageBlock(pos.x - 1, pos.y);
                 CheckAndDamageBlock(pos.x, pos.y + 1);
@@ -92,7 +86,7 @@ public class MatchProcessor
         await CommandQueue.Instance.WaitForAllCommands();
         if (positionsToClear.Count > 0 || powerUpsToSpawn.Count > 0)
         {
-            await UniTask.Delay(200); // Wait for destruction animations if any
+            await UniTask.Delay(200); 
         }
     }
 
@@ -100,7 +94,6 @@ public class MatchProcessor
     {
         if (match.shape == MatchShape.Line4)
         {
-            // Check if it's horizontal or vertical
             bool isHorizontal = match.positions.All(p => p.y == match.positions[0].y);
             return isHorizontal ? "VerticalLine" : "HorizontalLine";
         }
@@ -116,19 +109,15 @@ public class MatchProcessor
 
     private void CheckAndDamageBlock(int x, int y)
     {
-        if (_grid.IsValid(x, y))
-        {
-            var cell = _grid.GetValue(x, y);
-            if (cell.HasBlock())
-            {
-                var block = cell.GetBlock();
-                block.TakeDamage();
+        if (!_grid.IsValid(x, y)) return;
+        var cell = _grid.GetValue(x, y);
+        if (!cell.HasBlock()) return;
+        var block = cell.GetBlock();
+        block.TakeDamage();
                 
-                if (block.CurrentHealth <= 0)
-                {
-                    cell.ClearBlock();
-                }
-            }
+        if (block.CurrentHealth <= 0)
+        {
+            cell.ClearBlock();
         }
     }
 

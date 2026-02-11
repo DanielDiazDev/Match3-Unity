@@ -144,44 +144,33 @@ namespace Match3.Scripts.Core
                     var position = new Vector2Int(x, y);
                     GridObject gridObject = null;
                     
-                    // 1. Check for Block
                     if (_levelDataSO.initialBlocks.TryGetValue(position, out var blockSO))
                     {
-                        // Spawn Block
                         var blockGo = Instantiate(blockSO.prefab, transform);
                         blockGo.transform.position = _gridSystem.GetWorldPositionCenter(x, y);
-                        var block = blockGo.GetComponent<Match3.Scripts.Pieces.Block>();
+                        var block = blockGo.GetComponent<Pieces.Block>();
                         block.Init(blockSO);
 
-                        // Create GridObject with Block
                         gridObject = new GridObject(_gridSystem, x, y);
                         gridObject.SetBlock(block);
                         _gridSystem.SetValue(x, y, gridObject);
                     }
                     else
                     {
-                        // 2. Spawn Piece if no Block
-                        // Note: If there's no initial piece defined but also no block, we might want to spawn a random one or leave empty/spawn from available.
-                        // Existing logic assumed initialPieces has everything. We'll stick to that but fall back or handle missing if needed.
-                        // Actually, standard match-3: if it's a valid cell, it usually has a piece unless it's a "hole" (no grid object) or has a block.
-                        // For now we assume if not Block, we try to load Piece.
                         
                         if (_levelDataSO.initialPieces.TryGetValue(position, out var tileSo))
                         {
                             var piece = _pieceSpawner.Spawn(tileSo.id, position, transform);
                             piece.PlaySpawnAnimation();
-                            // Spawn creates and sets gridObject
                             gridObject = _gridSystem.GetValue(x, y);
                         }
                         else
                         {
-                             // Fallback: Create empty grid object if nothing defined (e.g. empty tile)
                              gridObject = new GridObject(_gridSystem, x, y);
                              _gridSystem.SetValue(x, y, gridObject);
                         }
                     }
 
-                    // 3. Check for Layer (can coexist with Piece or Block, though usually behind Piece)
                     if (_levelDataSO.initialLayers.TryGetValue(position, out var layerSO))
                     {
                         var layerGo = Instantiate(layerSO.prefab, transform);

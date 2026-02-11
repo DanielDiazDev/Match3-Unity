@@ -88,18 +88,6 @@ namespace Match3.Scripts.Match.Systems.Shapes
 
             return new ClassifiedMatch(match, MatchShape.Line3, center);
         }
-
-        private bool HasLine(List<Vector2Int> positions, Vector2Int dir)
-        {
-            foreach (var p in positions)
-            {
-                if (positions.Contains(p + dir) &&
-                    positions.Contains(p - dir))
-                    return true;
-            }
-            return false;
-        }
-
         private int Count(Vector2Int center, List<Vector2Int> positions, Vector2Int dir)
         {
             int count = 0;
