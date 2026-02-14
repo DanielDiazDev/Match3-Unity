@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Match3.Scripts.Data.Level;
-using Match3.Scripts.Data.Score;
 using Match3.Scripts.Event;
 using Match3.Scripts.Event.Data;
 using Match3.Scripts.Match.Systems;
@@ -17,6 +16,7 @@ using Match3.Scripts.PowerUps;
 using Match3.Scripts.Quests;
 using Match3.Scripts.Score;
 using Match3.Scripts.UI.Inventory;
+using Reflex.Attributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -30,13 +30,10 @@ namespace Match3.Scripts.Core
         [SerializeField] private LevelDataSO _levelDataSoTest;
         [SerializeField] private PowerUpSystem  _powerUpSystem; //No va
         [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; //No va
-        [SerializeField] private ScoreConfigurationSO _scoreConfigurationSO;//No va
-        private IScoreSystem _scoreSystem;//No va
+        private IScoreSystem _scoreSystem;
         private IQuestSystem _questSystem;//No va
-        [SerializeField] private InventoryView _inventoryView;//No va
-        [SerializeField] private PowerUpSODatabase _powerUpDatabase;//No va
-        [SerializeField] private List<TileSO> _availableTiles;//No va
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
+        [SerializeField] private GameObject _backgroundTilePrefab;
         private StarSystem _starSystem;
         private Vector3 _origin; 
         private int _remainingMoves;//No va
@@ -63,6 +60,11 @@ namespace Match3.Scripts.Core
         private void OnDestroy()
         {
             EventQueue.Instance.Unsubscribe(EventIds.SwipeDetected, this);
+        }
+        [Inject]
+        public void Construct(IScoreSystem scoreSystem)
+        {
+            _scoreSystem = scoreSystem;
         }
         public void Process(EventData eventData)
         {
@@ -103,7 +105,6 @@ namespace Match3.Scripts.Core
             _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
             _pieceSwapper = new PieceSwapper(_gridSystem);
             _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _scoreSystem = new ScoreSystem(new Match3ScoreStrategy(), _scoreConfigurationSO);
             _questSystem = new QuestSystem(_levelDataSO.quests);
             _starSystem = new StarSystem(_levelDataSO, _questSystem, _scoreSystem);
 
@@ -121,7 +122,6 @@ namespace Match3.Scripts.Core
             _turnFlowController = new TurnFlowController(_pieceSwapper, _moveValidator, _boardResolver, _powerUpSystem,
                 _scoreSystem, _gridSystem, _matchFinder);
             _endGameController = new EndGameSequenceController(_gridSystem, _powerUpSystem, _boardResolver);
-            //InitializeInventory();
         }
         private void SetBusy(bool busy)
         {
@@ -144,10 +144,11 @@ namespace Match3.Scripts.Core
                     if (!_levelDataSO.initialGridData.TryGetValue(position, out var cellData))
                     {
                         var gridObject = new GridObject(_gridSystem, x, y);
+                        gridObject.SetPlayable(false);
                         _gridSystem.SetValue(x, y, gridObject);
                         continue;
                     }
-
+                    SpawnBackground(position);
                     if (cellData.block != null)
                     {
                         _pieceSpawner.SpawnBlock(cellData.block.id, position, transform);
@@ -155,11 +156,12 @@ namespace Match3.Scripts.Core
                     else if (cellData.tile != null)
                     {
                         var piece = _pieceSpawner.Spawn(cellData.tile.id, position, transform);
-                        piece.PlaySpawnAnimation();
+                       // piece.PlaySpawnAnimation();
                     }
                     else
                     {
                         var gridObject = new GridObject(_gridSystem, x, y);
+                        gridObject.SetPlayable(true);
                         _gridSystem.SetValue(x, y, gridObject);
                     }
 
@@ -170,6 +172,8 @@ namespace Match3.Scripts.Core
                 }
             }
         }
+        private void SpawnBackground(Vector2Int position) => Instantiate(_backgroundTilePrefab, _gridSystem.GetWorldPositionCenter(position.x, position.y), Quaternion.identity, transform);
+
         private void HandleClick()
         {
             var worldPos = Camera.main.ScreenToWorldPoint(Touchscreen.current.position.ReadValue());

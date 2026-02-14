@@ -15,4 +15,4 @@ MonoBehaviour:
   objectiveDescription: Destroy 5 apples
   icon: {fileID: 21300000, guid: b7481a4c424715542a70ac1efc7468db, type: 3}
   targetPiece: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
-  amountRequired: 5
+  amountRequired: 10000
