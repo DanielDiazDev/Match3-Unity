@@ -1,28 +1,36 @@
 using System;
 using Match3.Scripts.Core;
+using Match3.Scripts.Event;
+using Match3.Scripts.Event.Data;
 using TMPro;
 using UnityEngine;
 
 namespace Match3.Scripts.UI
 {
-    public class MovesRemainingUI : MonoBehaviour
+    public class MovesRemainingUI : MonoBehaviour, IEventObserver
     {
         [SerializeField] private TextMeshProUGUI _movesText;
-        [SerializeField] private MatchManager _matchManager;
 
-        private void OnEnable()
+        private void Start()
         {
-            _matchManager.OnMovesChanged += UpdateMoves;
+            EventQueue.Instance.Subscribe(EventIds.MovesChanged, this);
         }
 
         private void OnDestroy()
         {
-            _matchManager.OnMovesChanged -= UpdateMoves;
+            EventQueue.Instance.Unsubscribe(EventIds.MovesChanged, this);
         }
-
+        public void Process(EventData eventData)
+        {
+            if(eventData.EventId != EventIds.MovesChanged) return;
+            var movesChangedEventData = (MovesChangedEventData)eventData;
+            UpdateMoves(movesChangedEventData.Moves);
+        }
         private void UpdateMoves(int moves)
         {
             _movesText.text = moves.ToString();
         }
+
+       
     }
 }

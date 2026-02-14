@@ -23,6 +23,7 @@ namespace Match3.Scripts.Grid
             _gridSystem = gridSystem;
             X = x;
             Y = y;
+            _isPlayable = true;
         }
 
         public void SetPosition(int x, int y)

@@ -9,6 +9,7 @@
         QuestsInitialized,
         AllObjectivesReached,
         ShowLose,
-        ShowWin
+        ShowWin,
+        MovesChanged
     }
 }

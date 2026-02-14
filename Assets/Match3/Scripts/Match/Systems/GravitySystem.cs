@@ -37,7 +37,7 @@ namespace Match3.Scripts.Core
                 {
                     var readCell = _grid.GetValue(x, readY);
 
-                    if (readCell.HasBlock())
+                    if (readCell.HasBlock() || !readCell.IsPlayable())
                     {
                         writeY = readY + 1;
                         continue;
@@ -84,13 +84,9 @@ namespace Match3.Scripts.Core
                     if (!targetCell.IsEmpty())
                         continue;
 
-                    if (_grid.IsValid(x, y + 1))
-                    {
-                        var cellAbove = _grid.GetValue(x, y + 1);
-                        if (!cellAbove.HasBlock())
-                            continue;
-                    }
-
+                    // Diagonal Pass logic:
+                    // If targetCell is empty, it means the vertical pass didn't fill it.
+                    // We try to fill it from diagonal top-left or top-right.
                     if (TryMoveDiagonal(x - 1, y + 1, x, y, ref sequence, ref sequenceCreated))
                     {
                         movedAny = true;
@@ -133,7 +129,7 @@ namespace Match3.Scripts.Core
             if (_grid.IsValid(fromX, fromY - 1))
             {
                 var belowSource = _grid.GetValue(fromX, fromY - 1);
-                if (belowSource.IsEmpty())
+                if (belowSource.IsPlayable() && belowSource.IsEmpty())
                     return false;
             }
 
@@ -142,6 +138,9 @@ namespace Match3.Scripts.Core
                 return false;
 
             var toCell = _grid.GetValue(toX, toY);
+
+            if (!toCell.IsPlayable())
+                return false;
 
             toCell.SetPiece(piece);
             fromCell.Clear();

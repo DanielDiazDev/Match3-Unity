@@ -34,9 +34,12 @@ namespace Match3.Scripts.Match.Systems
             {
                 int missingCount = 0;
 
-                for (int y = 0; y < _gridSystem.Height; y++)
+                for (int y = _gridSystem.Height - 1; y >= 0; y--)
                 {
                     var cell = _gridSystem.GetValue(x, y);
+
+                    if (!cell.IsPlayable() || cell.HasBlock())
+                        break;
 
                     if (!cell.IsEmpty())
                         continue;

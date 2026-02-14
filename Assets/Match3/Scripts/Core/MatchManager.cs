@@ -24,7 +24,6 @@ namespace Match3.Scripts.Core
 {
     public class MatchManager : MonoBehaviour, IEventObserver
     {
-        public event Action<int> OnMovesChanged; //No va
         [SerializeField] private float _cellSize = 1f;
         [SerializeField] private bool _debug = true;
         [SerializeField] private LevelDataSO _levelDataSoTest;
@@ -109,8 +108,7 @@ namespace Match3.Scripts.Core
             _starSystem = new StarSystem(_levelDataSO, _questSystem, _scoreSystem);
 
             _remainingMoves = _levelDataSO.maxMoves;
-            OnMovesChanged?.Invoke(_remainingMoves);
-
+            EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves));
             _powerUpSystem.Init(_gridSystem, _scoreSystem, _questSystem);
             _matchProcessor = new MatchProcessor(_gridSystem, _powerUpSystem, _scoreSystem);
             _gravitySystem = new GravitySystem(_gridSystem, _levelDataSO.width, _levelDataSO.height);
@@ -226,7 +224,7 @@ namespace Match3.Scripts.Core
             if (validMove)
             {
                 _remainingMoves--;
-                OnMovesChanged?.Invoke(_remainingMoves);
+                EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves));
             }
 
             await EvaluateGameState();
@@ -281,7 +279,7 @@ namespace Match3.Scripts.Core
                     moves =>
                     {
                         _remainingMoves = moves;
-                        OnMovesChanged?.Invoke(_remainingMoves);
+                        EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves));
                     });
             }
 
