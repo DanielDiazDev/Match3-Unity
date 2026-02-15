@@ -4,7 +4,8 @@
     {
         public readonly int Moves;
 
-        public MovesChangedEventData(EventIds eventId, int moves) : base(eventId)
+        public MovesChangedEventData(EventIds eventId, int moves, int priority = 0) 
+            : base(eventId, priority)
         {
             Moves = moves;
         }

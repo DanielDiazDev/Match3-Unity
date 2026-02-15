@@ -224,8 +224,10 @@ namespace Match3.Scripts.Core
             if (validMove)
             {
                 _remainingMoves--;
-                EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves));
+                EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves, 1));
             }
+
+            await _turnFlowController.Resolve();
 
             await EvaluateGameState();
 
@@ -279,7 +281,7 @@ namespace Match3.Scripts.Core
                     moves =>
                     {
                         _remainingMoves = moves;
-                        EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves));
+                        EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves, 1));
                     });
             }
 

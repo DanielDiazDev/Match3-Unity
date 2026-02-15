@@ -74,8 +74,10 @@ namespace Match3.Scripts.Core
                 return false;
             }
 
-            await _resolver.Resolve();
+            // await Resolve();
             return true;
         }
+
+        public async UniTask Resolve() => await _resolver.Resolve();
     }
 }

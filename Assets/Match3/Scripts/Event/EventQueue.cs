@@ -7,9 +7,12 @@ namespace Match3.Scripts.Event
     public class EventQueue : MonoBehaviour
     {
         public static EventQueue Instance { get; private set; }
-        private Queue<EventData> _currentEvents = new Queue<EventData>();
-        private Queue<EventData> _nextEvents = new Queue<EventData>();
-        private Dictionary<EventIds, List<IEventObserver>> _observers = new Dictionary<EventIds, List<IEventObserver>>();
+        // Frame actual
+        private Dictionary<int, Queue<EventData>> _currentEvents = new();
+        // Siguiente frame
+        private Dictionary<int, Queue<EventData>> _nextEvents = new();
+
+        private readonly Dictionary<EventIds, List<IEventObserver>> _observers = new();
 
         private void Awake()
         {
@@ -21,18 +24,29 @@ namespace Match3.Scripts.Event
             if (!_observers.TryGetValue(eventId, out var eventObservers))
             {
                 eventObservers = new List<IEventObserver>();
+                _observers[eventId] = eventObservers;
             }
+
             eventObservers.Add(observer);
-            _observers[eventId] = eventObservers;
         }
 
         public void Unsubscribe(EventIds eventId, IEventObserver observer)
         {
-            _observers[eventId].Remove(observer);
+            if (_observers.TryGetValue(eventId, out var eventObservers))
+            {
+                eventObservers.Remove(observer);
+            }
         }
+
         public void EnqueueEvent(EventData eventData)
         {
-            _nextEvents.Enqueue(eventData);
+            if (!_nextEvents.TryGetValue(eventData.Priority, out var queue))
+            {
+                queue = new Queue<EventData>();
+                _nextEvents[eventData.Priority] = queue;
+            }
+
+            queue.Enqueue(eventData);
         }
 
         private void LateUpdate()
@@ -42,26 +56,37 @@ namespace Match3.Scripts.Event
 
         private void ProcessEvents()
         {
+            // Swap buffers
             (_currentEvents, _nextEvents) = (_nextEvents, _currentEvents);
-            foreach (var currentEvent in _currentEvents)
+
+            if (_currentEvents.Count == 0)
+                return;
+
+            // Procesar de mayor prioridad a menor
+            var priorities = new List<int>(_currentEvents.Keys);
+            priorities.Sort((a, b) => b.CompareTo(a)); // DESC
+
+            foreach (var priority in priorities)
             {
-                ProcessEvent(currentEvent);
+                var queue = _currentEvents[priority];
+
+                while (queue.Count > 0)
+                {
+                    var eventData = queue.Dequeue();
+                    ProcessEvent(eventData);
+                }
             }
+
             _currentEvents.Clear();
-            //Si queremos procesar todos los eventos en el mismo frame
-            /*if (_nextEvents.Count > 0)
-            {
-                ProcessEvents();
-            }*/
         }
 
         private void ProcessEvent(EventData eventData)
         {
-            if (_observers.TryGetValue(eventData.EventId, out var eventObservers))
+            if (_observers.TryGetValue(eventData.EventId, out var observers))
             {
-                foreach (var eventObserver in eventObservers)
+                foreach (var observer in observers)
                 {
-                    eventObserver.Process(eventData);
+                    observer.Process(eventData);
                 }
             }
         }
