@@ -14,9 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Match.Systems.Spawner.PiecesConfigurationSO
   _pieceDictionary:
     _serializedList:
-    - Key: Apple
+    - Key: Black
       Value: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
-    - Key: Banana
+    - Key: Blue
       Value: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
     - Key: Orange
       Value: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
+    - Key: Green
+      Value: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+    - Key: Pink
+      Value: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+    - Key: Purple
+      Value: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+    - Key: Red
+      Value: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
+    - Key: Yellow
+      Value: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
+  _blockDictionary:
+    _serializedList:
+    - Key: Block
+      Value: {fileID: 11400000, guid: 926a63494e7706247b226bac876ea1f3, type: 2}
+  _layerDictionary:
+    _serializedList:
+    - Key: Layer
+      Value: {fileID: 11400000, guid: a90a00960e9c182479e1344970661784, type: 2}

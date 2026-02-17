@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3bb0a04da1ec7042900bde8bca0757c, type: 3}
   m_Name: ColorItem
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Shop.ShopItemSO
-  id: ColorItem
-  productName: ColorItem
+  id: Color
+  productName: Color
   icon: {fileID: 21300000, guid: c1d5a6c1ade19d340922e895b71ec629, type: 3}
   category: 0
   powerUp: {fileID: 11400000, guid: db91aa7d8db2a0a4ca11d1a7f36a9849, type: 2}

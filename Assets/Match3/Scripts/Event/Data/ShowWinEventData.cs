@@ -3,12 +3,10 @@
     public class ShowWinEventData : EventData
     {
         public readonly int Score;
-        public readonly int Star;
 
-        public ShowWinEventData(EventIds eventId, int score, int star) : base(eventId)
+        public ShowWinEventData(EventIds eventId, int score) : base(eventId)
         {
             Score = score;
-            Star = star;
         }
     }
 }

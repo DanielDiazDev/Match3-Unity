@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: ColorPowerUpSO
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.ColorPowerUpSO
   id: Color
-  sprite: {fileID: 21300000, guid: c1d5a6c1ade19d340922e895b71ec629, type: 3}
+  sprite: {fileID: -4119334708683220384, guid: 34dbd9a500aac934b9d5b373aba0b64b, type: 3}
   prefab: {fileID: 0}
   audioClip: {fileID: 0}
   vfxPrefab: {fileID: 0}
   activateSfx: {fileID: 0}
+  iconUI: {fileID: -3964239515689773084, guid: 4150998f7122a924d9d4ed5631bbb7d0, type: 3}

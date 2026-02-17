@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd4a4a44c8aacd24c9c41d50121f1f84, type: 3}
-  m_Name: Banana
+  m_Name: Yellow
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.ItemSo
-  id: Banana
-  sprite: {fileID: 21300000, guid: a292bddf8693e00428dace4a7f770aa6, type: 3}
+  id: Yellow
+  sprite: {fileID: 6358040702757662528, guid: 59790cc437b2c2a48b4cbd248115d387, type: 3}
   prefab: {fileID: 4764338578668296913, guid: 6ddb55b02c851cb43a2c8313ecbea852, type: 3}
   audioClip: {fileID: 0}

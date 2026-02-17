@@ -22,7 +22,7 @@ namespace Match3.Scripts.Pieces
             if (_spriteRenderer != null && data.sprite != null)
             {
                 _spriteRenderer.sprite = data.sprite;
-                _spriteRenderer.sortingOrder = -1; // Ensure it's behind pieces
+                _spriteRenderer.sortingOrder = 2; 
             }
         }
 

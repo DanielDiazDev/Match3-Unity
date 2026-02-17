@@ -2,6 +2,7 @@
 using Match3.Scripts.Core;
 using Match3.Scripts.Event;
 using Match3.Scripts.Event.Data;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,10 +10,9 @@ namespace Match3.Scripts.UI.EndGame
 {
     public class EndGameUI : MonoBehaviour, IEventObserver
     {
-        [SerializeField] private GameObject _winPanel;
-        [SerializeField] private GameObject _losePanel;
-        [SerializeField] private WinUI _winUI;
-        [SerializeField] private LoseUI _loseUI;
+        [SerializeField] private TextMeshProUGUI _resultText;
+        [SerializeField] private TextMeshProUGUI _scoreText;
+        
 
         private const string LEVEL_SELECTOR_SCENE = "LevelSelector";
 
@@ -32,28 +32,27 @@ namespace Match3.Scripts.UI.EndGame
         {
             if (eventData.EventId == EventIds.ShowLose)
             {
-                ShowLose();
+                var showLoseEventData = (ShowLoseEventData)eventData;
+                ShowLose(showLoseEventData.Score);
             }
 
             if (eventData.EventId == EventIds.ShowWin)
             {
                 var showWinEventData = (ShowWinEventData)eventData;
-                ShowWin(showWinEventData.Score, showWinEventData.Star);
+                ShowWin(showWinEventData.Score);
             }
         }
 
-        private void ShowWin(int score, int stars)
+        private void ShowWin(int score)
         {
-            _winPanel.SetActive(true);
-            _losePanel.SetActive(false);
-            _winUI.Setup(score, stars, ReturnToMenu);
+            _resultText.text = "You win!!";
+            _scoreText.text = score.ToString();
         }
 
-        private void ShowLose()
+        private void ShowLose(int score)
         {
-            _winPanel.SetActive(false);
-            _losePanel.SetActive(true);
-            _loseUI.Setup(ReturnToMenu);
+            _resultText.text = "You lose!";
+            _scoreText.text = score.ToString();
         }
 
         private void ReturnToMenu()

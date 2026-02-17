@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: VerticalLinePowerUpSO
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.VerticalLinePowerUpSO
   id: VerticalLine
-  sprite: {fileID: 21300000, guid: 01a34d9e0dade794188a273832564fb0, type: 3}
+  sprite: {fileID: 2289277182493261824, guid: 63200d3095eb1934d9675ed0eeb42c89, type: 3}
   prefab: {fileID: 0}
   audioClip: {fileID: 0}
   vfxPrefab: {fileID: 0}
   activateSfx: {fileID: 0}
+  iconUI: {fileID: -7000789789291523589, guid: 0ffea4cc940ece44486691acc3fe0075, type: 3}

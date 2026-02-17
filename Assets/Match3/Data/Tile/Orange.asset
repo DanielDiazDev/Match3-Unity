@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Orange
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.ItemSo
   id: Orange
-  sprite: {fileID: 21300000, guid: 5b0c287fddf11b24d910a6b285ee1807, type: 3}
+  sprite: {fileID: 4121880872312635667, guid: 92cefa274f227d34cb182124dad59e16, type: 3}
   prefab: {fileID: 4764338578668296913, guid: 6ddb55b02c851cb43a2c8313ecbea852, type: 3}
   audioClip: {fileID: 0}

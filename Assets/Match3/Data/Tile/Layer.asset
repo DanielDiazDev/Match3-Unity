@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Layer
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.LayerSO
   id: Layer
-  sprite: {fileID: 21300000, guid: 50dd2e8acaa7426438d693e39eb73026, type: 3}
+  sprite: {fileID: -8424572087743188642, guid: 1a97ac02d48cc2440a935333ecc54411, type: 3}
   prefab: {fileID: 3781178874020844043, guid: 1ecfd6f032add5e4fabb4b9db899bc98, type: 3}
   destroySound: {fileID: 0}

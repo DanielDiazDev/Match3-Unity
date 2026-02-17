@@ -22,6 +22,7 @@ namespace Match3.Scripts.Level
         [SerializeField] private LevelDetailView _levelDetailView;
         [SerializeField] private CanvasGroup _levelSelectorCanvasGroup;
         [SerializeField] private Button _openShopButton;
+        [SerializeField] private Button _closeLevelDetailButton;
         private readonly LevelDetailViewModel _levelDetailViewModel = new LevelDetailViewModel();
 
         private void Awake()
@@ -51,7 +52,7 @@ namespace Match3.Scripts.Level
             }
 
             _openShopButton.onClick.AddListener(OpenShop);
-
+            _closeLevelDetailButton.onClick.AddListener(HideLevelDetail);
             GenerateLevels();
         }
 
@@ -67,7 +68,7 @@ namespace Match3.Scripts.Level
 
         public void SetLevelSelectorInteractable(bool interactable)
         {
-            _openShopButton.gameObject.SetActive(interactable);
+            _openShopButton.interactable = interactable;
             _levelSelectorCanvasGroup.interactable = interactable;
             _levelSelectorCanvasGroup.blocksRaycasts = interactable;
         }
@@ -93,11 +94,13 @@ namespace Match3.Scripts.Level
         public void ShowLevelDetail()
         {
             _levelDetailView.Show();
+            SetLevelSelectorInteractable(false);
         }
 
         public void HideLevelDetail()
         {
             _levelDetailView.Hide();
+            SetLevelSelectorInteractable(true);
         }
         private void OnDestroy()
         {

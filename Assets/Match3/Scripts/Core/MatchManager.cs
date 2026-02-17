@@ -8,6 +8,7 @@ using System.Linq;
 using Match3.Scripts.Data.Level;
 using Match3.Scripts.Event;
 using Match3.Scripts.Event.Data;
+using Match3.Scripts.General;
 using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.Match.Systems.Spawner;
@@ -15,7 +16,7 @@ using Match3.Scripts.Persistence;
 using Match3.Scripts.PowerUps;
 using Match3.Scripts.Quests;
 using Match3.Scripts.Score;
-using Match3.Scripts.UI.Inventory;
+using Match3.Scripts.UI.Game;
 using Reflex.Attributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -33,6 +34,8 @@ namespace Match3.Scripts.Core
         private IQuestSystem _questSystem;//No va
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
         [SerializeField] private GameObject _backgroundTilePrefab;
+        [SerializeField] private InventoryUI _inventoryUI;
+        [SerializeField] private GameObject _gameEnd;
         private StarSystem _starSystem;
         private Vector3 _origin; 
         private int _remainingMoves;//No va
@@ -55,7 +58,7 @@ namespace Match3.Scripts.Core
         private BoardResolver _boardResolver;
         private EndGameSequenceController _endGameController;
         private bool _gameEnded;
-        
+        private string _selectedPowerUpId;
         private void OnDestroy()
         {
             EventQueue.Instance.Unsubscribe(EventIds.SwipeDetected, this);
@@ -77,6 +80,11 @@ namespace Match3.Scripts.Core
             EventQueue.Instance.Subscribe(EventIds.SwipeDetected, this);
             InitializeSystems();
             InitializeGrid();
+            _inventoryUI.OnPowerUpSelected += OnPowerUpSelected;
+        }
+        private void OnPowerUpSelected(string id)
+        {
+            _selectedPowerUpId = id;
         }
         private void Update()
         {
@@ -120,6 +128,7 @@ namespace Match3.Scripts.Core
             _turnFlowController = new TurnFlowController(_pieceSwapper, _moveValidator, _boardResolver, _powerUpSystem,
                 _scoreSystem, _gridSystem, _matchFinder);
             _endGameController = new EndGameSequenceController(_gridSystem, _powerUpSystem, _boardResolver);
+            _inventoryUI.Init(_progressRepository);
         }
         private void SetBusy(bool busy)
         {
@@ -129,8 +138,15 @@ namespace Match3.Scripts.Core
             //     _inventoryViewModel.IsBusy.Value = busy;
             // }
         }
-        //No va aca, installer o manager
-       
+        public void SelectPowerUp(string id)
+        {
+            if (_isBusy || _gameEnded) return;
+            _selectedPowerUpId = id;
+        }
+        private void ClearSelectedPowerUp()
+        {
+            _selectedPowerUpId = null;
+        }
         private void InitializeGrid()
         {
             for (var x = 0; x < _levelDataSO.width; x++) 
@@ -174,6 +190,8 @@ namespace Match3.Scripts.Core
 
         private void HandleClick()
         {
+            if (_isBusy || _gameEnded) return;
+
             var worldPos = Camera.main.ScreenToWorldPoint(Touchscreen.current.position.ReadValue());
             worldPos.z = 0f;
 
@@ -182,22 +200,39 @@ namespace Match3.Scripts.Core
             if (!IsValidPosition(gridPos))
                 return;
 
-            // if (!string.IsNullOrEmpty(_inventoryViewModel.SelectedPowerUpId.Value))
-            // {
-            //     if (_isBusy) return;
-            //     SetBusy(true);
-            //     _usePowerUpUseCase.Execute(_inventoryViewModel.SelectedPowerUpId.Value, gridPos);
-            //     _inventoryController.Deselect();
-            //     _inventoryPresenter.RefreshInventory();
-            //         
-            //     EndTurnSequence().Forget();
-            //     return;
-            // }
-
+            if (!string.IsNullOrEmpty(_selectedPowerUpId))
+            {
+                UsePowerUpAt(gridPos).Forget();
+                return;
+            }
             _selectedCell = _gridSystem.GetValue(gridPos.x, gridPos.y);
             _selectedCellDebug.Set(_selectedCell);
         }
-        
+
+        private async UniTask UsePowerUpAt(Vector2Int gridPos)
+        {
+            if (_isBusy || _gameEnded) return;
+
+            var gridObject = _gridSystem.GetValue(gridPos.x, gridPos.y);
+
+            if (gridObject == null || gridObject.IsEmpty() || !gridObject.IsPlayable())
+                return;
+
+            SetBusy(true);
+            _inventoryUI.Refresh();
+            _powerUpSystem.ChangeToPowerUp(_selectedPowerUpId, gridPos);
+
+            await UniTask.Yield(); 
+            _powerUpSystem.TriggerPowerUp(gridPos);
+            await CommandQueue.Instance.WaitForAllCommands();
+            await _boardResolver.Resolve();
+            _progressRepository.ConsumePowerUp(_selectedPowerUpId);
+            ClearSelectedPowerUp();
+            await EvaluateGameState();
+            SetBusy(false);
+        }
+
+
 
         private void OnSwipeItem(Vector2 worldPos, Vector2Int direction)
         {
@@ -261,14 +296,18 @@ namespace Match3.Scripts.Core
         {
             Debug.Log("[MatchManager] Game Over! Moves finished without completing objectives.");
             _gameEnded = true;
-            EventQueue.Instance.EnqueueEvent(new EventData(EventIds.ShowLose));
+            _gameEnd.SetActive(true);
+            var showLoseEventData = new ShowLoseEventData(
+                EventIds.ShowLose,
+                _scoreSystem.CurrentScore);
+            EventQueue.Instance.EnqueueEvent(showLoseEventData);
         }
 
         private async UniTask HandleLevelWin()
         {
             _gameEnded = true;
             _starSystem.ForceMinimumStar();
-
+            _gameEnd.SetActive(true);
             _progressRepository.UpdateLevelProgress(
                 _levelDataSO.id,
                 _starSystem.CurrentStars,
@@ -287,8 +326,7 @@ namespace Match3.Scripts.Core
 
             var showWinEventData = new ShowWinEventData(
                 EventIds.ShowWin,
-                _scoreSystem.CurrentScore,
-                _starSystem.CurrentStars);
+                _scoreSystem.CurrentScore);
 
             EventQueue.Instance.EnqueueEvent(showWinEventData);
         }

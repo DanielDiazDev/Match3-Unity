@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd4a4a44c8aacd24c9c41d50121f1f84, type: 3}
+  m_Name: Purple
+  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.ItemSo
+  id: Purple
+  sprite: {fileID: -8923911374754931897, guid: a4cdf9012c71e3e499fadf2250a212c1, type: 3}
+  prefab: {fileID: 4764338578668296913, guid: 6ddb55b02c851cb43a2c8313ecbea852, type: 3}
+  audioClip: {fileID: 0}

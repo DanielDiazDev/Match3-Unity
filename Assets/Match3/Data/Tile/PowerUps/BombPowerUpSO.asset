@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: BombPowerUpSO
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Item.BombPowerUpSO
   id: Bomb
-  sprite: {fileID: 21300000, guid: 2be55834e2ff7b144a243413f2979787, type: 3}
+  sprite: {fileID: -1483665779731714255, guid: fb98edfdc1784e44695c3fe3f4bec5ca, type: 3}
   prefab: {fileID: 0}
   audioClip: {fileID: 0}
   vfxPrefab: {fileID: 0}
   activateSfx: {fileID: 0}
+  iconUI: {fileID: 5076903405219738771, guid: e34cd349fdea904468d2fe72a8e4eb23, type: 3}
   radius: 1
