@@ -19,17 +19,21 @@ namespace Match3.Scripts.Data.Quests
     public class PieceDestructionProgress : QuestProgress
     {
         private readonly PieceDestructionObjectiveSO _so;
-        private int _currentAmount;
+        private int _remaining;
         private QuestSystem _questSystem;
+
+        public int Remaining => _remaining;
+        public int Required => _so.amountRequired;
+
+        public override bool IsReached => _remaining <= 0;
+
+        public PieceSO TargetPiece => _so.targetPiece;
 
         public PieceDestructionProgress(PieceDestructionObjectiveSO objective) : base(objective)
         {
             _so = objective;
+            _remaining = _so.amountRequired;
         }
-
-        public override bool IsReached => _currentAmount >= _so.amountRequired;
-
-        public override string GetProgressFormatted() => $"{_currentAmount}/{_so.amountRequired}";
 
         public override void Initialize(QuestSystem questSystem)
         {
@@ -39,9 +43,11 @@ namespace Match3.Scripts.Data.Quests
 
         private void HandlePieceDestroyed(PieceSO piece)
         {
-            if (piece.id == _so.targetPiece.id)
+            if (IsReached) return;
+
+            if (piece == _so.targetPiece)
             {
-                _currentAmount++;
+                _remaining = Mathf.Max(0, _remaining - 1);
                 OnProgressChanged?.Invoke();
             }
         }

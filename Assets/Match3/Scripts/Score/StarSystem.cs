@@ -12,8 +12,6 @@ namespace Match3.Scripts.Score
         private readonly LevelDataSO _levelData;
         private IQuestSystem _questSystem;
         private IScoreSystem _scoreSystem;
-        public event Action<int> OnStarPowerChanged;
-        public event Action<int> OnStarReached;
 
         public int CurrentStarPower { get; private set; }
         public int CurrentStars { get; private set; }
@@ -24,6 +22,12 @@ namespace Match3.Scripts.Score
             {
                 HandleObjectiveCompleted();
             }
+
+            if (eventData.EventId == EventIds.ScoreChanged)
+            {
+                var scoreChangedEventData = (ScoreChangedEventData)eventData;
+                HandleScoreChanged(scoreChangedEventData.Score);
+            }
         }
         public StarSystem(LevelDataSO levelData, IQuestSystem questSystem, IScoreSystem scoreSystem)
         {
@@ -31,6 +35,9 @@ namespace Match3.Scripts.Score
             _questSystem = questSystem;
             _scoreSystem = scoreSystem;
             EventQueue.Instance.Subscribe(EventIds.ObjectiveCompleted, this);
+            EventQueue.Instance.Subscribe(EventIds.ScoreChanged, this);
+            var starPowerInitializedEventData = new StarPowerInitializedEventData(EventIds.StarsInitialized, _levelData.starThresholds);
+            EventQueue.Instance.EnqueueEvent(starPowerInitializedEventData);
             
         }
 
@@ -54,7 +61,9 @@ namespace Match3.Scripts.Score
             CurrentStarPower = score + totalBonus;
             
             CheckStars();
-            OnStarPowerChanged?.Invoke(CurrentStarPower);
+            var starPowerChangedEventData =
+                new StarPowerChangedEventData(EventIds.StarPowerChanged, CurrentStarPower);
+            EventQueue.Instance.EnqueueEvent(starPowerChangedEventData);
         }
 
         private void CheckStars()
@@ -75,7 +84,9 @@ namespace Match3.Scripts.Score
             if (starsReached > CurrentStars)
             {
                 CurrentStars = starsReached;
-                OnStarReached?.Invoke(CurrentStars);
+                var starReachedEventData =
+                    new StarReachedEventData(EventIds.StarReachedChanged, CurrentStars, 1);
+                EventQueue.Instance.EnqueueEvent(starReachedEventData);
             }
         }
 
@@ -86,14 +97,19 @@ namespace Match3.Scripts.Score
             {
                 CurrentStarPower = Mathf.Max(CurrentStarPower, _levelData.starThresholds[0]);
                 CurrentStars = 1;
-                OnStarPowerChanged?.Invoke(CurrentStarPower);
-                OnStarReached?.Invoke(CurrentStars);
+                var starPowerChangedEventData =
+                    new StarPowerChangedEventData(EventIds.StarPowerChanged, CurrentStarPower);
+                EventQueue.Instance.EnqueueEvent(starPowerChangedEventData);
+                var starReachedEventData =
+                    new StarReachedEventData(EventIds.StarReachedChanged, CurrentStars, 1);
+                EventQueue.Instance.EnqueueEvent(starReachedEventData);
             }
         }
 
         public void Dispose() // TODO Alguien lo tiene que llamar
         {
             EventQueue.Instance.Unsubscribe(EventIds.ObjectiveCompleted, this);
+            EventQueue.Instance.Unsubscribe(EventIds.ScoreChanged, this);
         }
 
         

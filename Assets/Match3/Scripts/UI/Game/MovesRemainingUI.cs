@@ -1,11 +1,9 @@
-using System;
-using Match3.Scripts.Core;
 using Match3.Scripts.Event;
 using Match3.Scripts.Event.Data;
 using TMPro;
 using UnityEngine;
 
-namespace Match3.Scripts.UI
+namespace Match3.Scripts.UI.Game
 {
     public class MovesRemainingUI : MonoBehaviour, IEventObserver
     {

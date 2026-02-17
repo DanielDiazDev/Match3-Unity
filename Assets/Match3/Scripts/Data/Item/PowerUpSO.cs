@@ -12,7 +12,7 @@ namespace Match3.Scripts.Data.Item
     {
         public GameObject vfxPrefab;
         public AudioClip activateSfx;
-        
+        public Sprite iconUI;
         public abstract void Activate(Piece piece, GridSystem<GridObject> gridSystem, PowerUpSystem powerUpSystem);
     }
     

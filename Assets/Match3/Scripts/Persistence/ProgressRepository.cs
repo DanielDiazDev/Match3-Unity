@@ -84,7 +84,6 @@ namespace Match3.Scripts.Persistence
                 if (newHearts > data.hearts)
                 {
                     data.hearts = newHearts;
-                    // Update ticks to the time of the last added heart to avoid losing partial progress
                     long usedTicks = heartsToAdd * regenerationInterval.Ticks;
                     data.lastHeartUpdateTick = lastUpdateTime.Ticks + usedTicks;
                     Save(data);
@@ -114,7 +113,7 @@ namespace Match3.Scripts.Persistence
 
         public void SavePlayerData(int coins, int hearts)
         {
-            var data = Load(); // Load applies regeneration first
+            var data = Load(); 
             data.coins = coins;
             data.hearts = hearts;
             Save(data);

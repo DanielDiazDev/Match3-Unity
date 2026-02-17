@@ -14,7 +14,6 @@ namespace Match3.Scripts.Data.Quests
     {
         public QuestObjectiveSO Objective { get; }
         public abstract bool IsReached { get; }
-        public abstract string GetProgressFormatted();
         
         public System.Action OnProgressChanged;
 

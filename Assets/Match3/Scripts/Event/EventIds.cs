@@ -10,6 +10,9 @@
         AllObjectivesReached,
         ShowLose,
         ShowWin,
-        MovesChanged
+        MovesChanged,
+        StarsInitialized,
+        StarPowerChanged,
+        StarReachedChanged
     }
 }
