@@ -26,7 +26,7 @@ namespace Match3.Scripts.Core
             _resolver = resolver;
         }
 
-        public async UniTask ExecutePostGame(int remainingMoves, Action<int> onMoveUsed)
+        public async UniTask ExecutePostGame(int remainingMoves, int difficulty, Action<int> onMoveUsed)
         {
             while (remainingMoves > 0)
             {
@@ -44,7 +44,7 @@ namespace Match3.Scripts.Core
                 }
 
                 await CommandQueue.Instance.WaitForAllCommands();
-                await _resolver.Resolve();
+                await _resolver.Resolve(difficulty);
             }
         }
 

@@ -25,7 +25,7 @@ namespace Match3.Scripts.Match.Systems
             _parent = parent;
         }
 
-        public async UniTask ApplyRefill()
+        public async UniTask ApplyRefill(int difficulty = 1, int cascadeCount = 0)
         {
             Sequence sequence = default;
             bool sequenceCreated = false;
@@ -46,11 +46,7 @@ namespace Match3.Scripts.Match.Systems
 
                     missingCount++;
 
-                    var validPieces = GetValidPiecesForPosition(x, y);
-
-                    PieceSO selected = validPieces.Count > 0
-                        ? validPieces[Random.Range(0, validPieces.Count)]
-                        : _levelDataSO.availableTiles[Random.Range(0, _levelDataSO.availableTiles.Count)];
+                    TileSO selected = SelectPieceWithDifficulty(x, y, difficulty, cascadeCount);
 
                     var piece = _pieceSpawner.Spawn(selected.id, new Vector2Int(x, y), _parent);
 
@@ -73,7 +69,8 @@ namespace Match3.Scripts.Match.Systems
 
                     sequence.Group(tween);
 
-                    piece.PlaySpawnAnimation();
+                    var spawnTween = piece.PlaySpawnAnimation();
+                    sequence.Group(spawnTween);
                 }
             }
 
@@ -83,33 +80,84 @@ namespace Match3.Scripts.Match.Systems
             }
         }
 
-        private List<PieceSO> GetValidPiecesForPosition(int x, int y)
+        private TileSO SelectPieceWithDifficulty(int x, int y, int difficulty, int cascadeCount)
         {
-            return _levelDataSO.availableTiles.Where(piece => !CreatesMatch(x, y, piece)).Cast<PieceSO>().ToList();
+            var available = _levelDataSO.availableTiles;
+            
+            bool avoidNearMatches = difficulty >= 4 && cascadeCount > 0;
+
+            var candidates = available.Where(p => !CreatesMatch(x, y, p)).ToList();
+
+            if (avoidNearMatches && candidates.Count > 1)
+            {
+                var verySafeCandidates = candidates.Where(p => !CreatesNearMatch(x, y, p)).ToList();
+                if (verySafeCandidates.Count > 0)
+                    return verySafeCandidates[Random.Range(0, verySafeCandidates.Count)];
+            }
+
+            if (candidates.Count > 0)
+                return candidates[Random.Range(0, candidates.Count)];
+
+            return available[Random.Range(0, available.Count)];
         }
 
         private bool CreatesMatch(int x, int y, TileSO candidate)
         {
-            // Horizontal ←←
+            // Horizontal check (Left)
             if (x >= 2)
             {
-                var p1 = _gridSystem.GetValue(x - 1, y).GetPiece();
-                var p2 = _gridSystem.GetValue(x - 2, y).GetPiece();
-
-                if (p1 && p2 && p1.pieceSo == candidate && p2.pieceSo == candidate)
-                    return true;
+                var p1 = _gridSystem.GetValue(x - 1, y)?.GetPiece();
+                var p2 = _gridSystem.GetValue(x - 2, y)?.GetPiece();
+                if (p1 && p1.pieceSo == candidate && p2 && p2.pieceSo == candidate) return true;
+            }
+            // Horizontal check (Right)
+            if (x < _gridSystem.Width - 2)
+            {
+                var p1 = _gridSystem.GetValue(x + 1, y)?.GetPiece();
+                var p2 = _gridSystem.GetValue(x + 2, y)?.GetPiece();
+                if (p1 && p1.pieceSo == candidate && p2 && p2.pieceSo == candidate) return true;
+            }
+            // Horizontal check (Middle)
+            if (x >= 1 && x < _gridSystem.Width - 1)
+            {
+                var p1 = _gridSystem.GetValue(x - 1, y)?.GetPiece();
+                var p2 = _gridSystem.GetValue(x + 1, y)?.GetPiece();
+                if (p1 && p1.pieceSo == candidate && p2 && p2.pieceSo == candidate) return true;
             }
 
-            // Vertical ↓↓
+            // Vertical check (Down)
             if (y >= 2)
             {
-                var p1 = _gridSystem.GetValue(x, y - 1).GetPiece();
-                var p2 = _gridSystem.GetValue(x, y - 2).GetPiece();
-
-                if (p1 && p2 && p1.pieceSo == candidate && p2.pieceSo == candidate)
-                    return true;
+                var p1 = _gridSystem.GetValue(x, y - 1)?.GetPiece();
+                var p2 = _gridSystem.GetValue(x, y - 2)?.GetPiece();
+                if (p1 && p1.pieceSo == candidate && p2 && p2.pieceSo == candidate) return true;
+            }
+            // Vertical check (Up)
+            if (y < _gridSystem.Height - 2)
+            {
+                var p1 = _gridSystem.GetValue(x, y + 1)?.GetPiece();
+                var p2 = _gridSystem.GetValue(x, y + 2)?.GetPiece();
+                if (p1 && p1.pieceSo == candidate && p2 && p2.pieceSo == candidate) return true;
+            }
+            // Vertical check (Middle)
+            if (y >= 1 && y < _gridSystem.Height - 1)
+            {
+                var p1 = _gridSystem.GetValue(x, y - 1)?.GetPiece();
+                var p2 = _gridSystem.GetValue(x, y + 1)?.GetPiece();
+                if (p1 && p1.pieceSo == candidate && p2 && p2.pieceSo == candidate) return true;
             }
 
+            return false;
+        }
+
+        private bool CreatesNearMatch(int x, int y, TileSO candidate)
+        {
+            // Check if any neighbor is the same color
+            if (x > 0 && _gridSystem.GetValue(x - 1, y)?.GetPiece()?.pieceSo == candidate) return true;
+            if (x < _gridSystem.Width - 1 && _gridSystem.GetValue(x + 1, y)?.GetPiece()?.pieceSo == candidate) return true;
+            if (y > 0 && _gridSystem.GetValue(x, y - 1)?.GetPiece()?.pieceSo == candidate) return true;
+            if (y < _gridSystem.Height - 1 && _gridSystem.GetValue(x, y + 1)?.GetPiece()?.pieceSo == candidate) return true;
+            
             return false;
         }
       

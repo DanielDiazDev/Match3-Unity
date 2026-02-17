@@ -126,7 +126,7 @@ namespace Match3.Scripts.Core
             _moveValidator = new MoveValidator(_gridSystem, _matchFinder);
             _shuffleBoardSystem = new ShuffleBoardSystem(_gridSystem, _matchFinder, _moveValidator);
             _boardResolver =
-                new BoardResolver(_matchFinder, _matchProcessor, _gravitySystem, _refillSystem, _gridSystem);
+                new BoardResolver(_matchFinder, _matchProcessor, _gravitySystem, _refillSystem, _gridSystem, _scoreSystem);
             _turnFlowController = new TurnFlowController(_pieceSwapper, _moveValidator, _boardResolver, _powerUpSystem,
                 _scoreSystem, _gridSystem, _matchFinder);
             _endGameController = new EndGameSequenceController(_gridSystem, _powerUpSystem, _boardResolver);
@@ -227,7 +227,7 @@ namespace Match3.Scripts.Core
             await UniTask.Yield(); 
             _powerUpSystem.TriggerPowerUp(gridPos);
             await CommandQueue.Instance.WaitForAllCommands();
-            await _boardResolver.Resolve();
+            await _boardResolver.Resolve(_levelDataSO.difficulty);
             _progressRepository.ConsumePowerUp(_selectedPowerUpId);
             ClearSelectedPowerUp();
             await EvaluateGameState();
@@ -264,7 +264,7 @@ namespace Match3.Scripts.Core
                 EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves, 1));
             }
 
-            await _turnFlowController.Resolve();
+            await _turnFlowController.Resolve(_levelDataSO.difficulty);
 
             await EvaluateGameState();
 
@@ -283,7 +283,7 @@ namespace Match3.Scripts.Core
 
             if (_remainingMoves <= 0)
             {
-                HandleGameOver();
+                await HandleGameOver();
                 return;
             }
 
@@ -294,10 +294,11 @@ namespace Match3.Scripts.Core
             }
         }
 
-        private void HandleGameOver()
+        private async UniTask HandleGameOver()
         {
             Debug.Log("[MatchManager] Game Over! Moves finished without completing objectives.");
             _gameEnded = true;
+            await CommandQueue.Instance.WaitForAllCommands();
             _gameEnd.SetActive(true);
             var showLoseEventData = new ShowLoseEventData(
                 EventIds.ShowLose,
@@ -309,7 +310,7 @@ namespace Match3.Scripts.Core
         {
             _gameEnded = true;
             _starSystem.ForceMinimumStar();
-            _gameEnd.SetActive(true);
+            
             _progressRepository.UpdateLevelProgress(
                 _levelDataSO.id,
                 _starSystem.CurrentStars,
@@ -319,6 +320,7 @@ namespace Match3.Scripts.Core
             {
                 await _endGameController.ExecutePostGame(
                     _remainingMoves,
+                    _levelDataSO.difficulty,
                     moves =>
                     {
                         _remainingMoves = moves;
@@ -330,6 +332,8 @@ namespace Match3.Scripts.Core
                 EventIds.ShowWin,
                 _scoreSystem.CurrentScore);
 
+            await CommandQueue.Instance.WaitForAllCommands();
+            _gameEnd.SetActive(true);
             EventQueue.Instance.EnqueueEvent(showWinEventData);
         }
         

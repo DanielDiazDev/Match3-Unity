@@ -5,6 +5,7 @@ using Match3.Scripts.Event.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Match3.Scripts.UI.EndGame
 {
@@ -12,20 +13,21 @@ namespace Match3.Scripts.UI.EndGame
     {
         [SerializeField] private TextMeshProUGUI _resultText;
         [SerializeField] private TextMeshProUGUI _scoreText;
-        
+        [SerializeField] private Button _nextButton; 
 
         private const string LEVEL_SELECTOR_SCENE = "LevelSelector";
+
+        private void OnDisable()
+        {
+            EventQueue.Instance.Unsubscribe(EventIds.ShowWin, this);
+            EventQueue.Instance.Unsubscribe(EventIds.ShowLose, this);
+        }
 
         private void Start()
         {
             EventQueue.Instance.Subscribe(EventIds.ShowWin, this);
             EventQueue.Instance.Subscribe(EventIds.ShowLose, this);
-        }
-
-        private void OnDestroy()
-        {
-            EventQueue.Instance.Unsubscribe(EventIds.ShowWin, this);
-            EventQueue.Instance.Unsubscribe(EventIds.ShowLose, this);
+            _nextButton.onClick.AddListener(ReturnToMenu);
         }
 
         public void Process(EventData eventData)
