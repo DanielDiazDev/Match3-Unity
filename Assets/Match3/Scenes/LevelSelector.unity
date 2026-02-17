@@ -1847,6 +1847,10 @@ MonoBehaviour:
   _items:
   - {fileID: 11400000, guid: 1082381ba58c1534ab544e1c8a9c3749, type: 2}
   - {fileID: 11400000, guid: b07f115c165c47e479ef5999266730cb, type: 2}
+  - {fileID: 11400000, guid: b247bf30e28634840bf51a7cacf854cd, type: 2}
+  - {fileID: 11400000, guid: f41929cd61a7a2040b89a33cd08f4125, type: 2}
+  - {fileID: 11400000, guid: 789f88095ea564341b225a2623b5ca03, type: 2}
+  - {fileID: 11400000, guid: 621520bd51b7d88448458b56ecf1c722, type: 2}
   _playerView: {fileID: 1587386045}
 --- !u!1 &1178965354
 GameObject:

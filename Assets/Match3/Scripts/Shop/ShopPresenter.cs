@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Match3.Scripts.Data.Shop;
 using Match3.Scripts.Shop.Item;
+using UnityEngine;
 using UniRx;
 
 namespace Match3.Scripts.Shop
@@ -35,7 +37,7 @@ namespace Match3.Scripts.Shop
 
             foreach (var item in _items.Where(x => x.Category == (Item.ShopCategoryType)category))
             {
-                var vm = new ShopItemViewModel(item, null);
+                var vm = new ShopItemViewModel(item, item.Icon);
                 _model.VisibleItems.Add(vm);
             }
         }

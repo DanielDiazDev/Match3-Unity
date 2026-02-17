@@ -704,8 +704,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49e104d75e6302b4488d40f1cdbf05ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.UI.Inventory.InventoryView
-  _content: {fileID: 196517729}
-  _itemPrefab: {fileID: 2826944779640530983, guid: dffe150bf4c106c4db3aad7ba5858060, type: 3}
 --- !u!114 &196517732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1815,6 +1813,8 @@ MonoBehaviour:
   _powerUpDatabase: {fileID: 11400000, guid: 0f4a33b9593df4a40a4cc80cf3c9ecaf, type: 2}
   _itemPrefab: {fileID: 8833083351538055443, guid: aa9483f06b4b2b14abc3505ad144869e, type: 3}
   _container: {fileID: 722947597}
+  _maxSlots: 3
+  _emptySlotSprite: {fileID: -1271814512344224512, guid: 8d50037548b5bad419af7ae399bdd15c, type: 3}
 --- !u!1 &730804561
 GameObject:
   m_ObjectHideFlags: 0
@@ -3656,7 +3656,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4c872cc82adde947a1b6b5ef6a74bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.UI.Score.ScoreView
-  _scoreText: {fileID: 1309153284}
 --- !u!114 &1741088977
 MonoBehaviour:
   m_ObjectHideFlags: 0

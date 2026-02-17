@@ -31,6 +31,13 @@ namespace Match3.Scripts.Shop
                 .Subscribe(_ => _model.SelectedCategory.Value = ShopCategoryType.Stats)
                 .AddTo(_disposables);
 
+            foreach (var item in _model.VisibleItems)
+            {
+                item.Clicked
+                    .Subscribe(_ => OnItemClicked(item))
+                    .AddTo(_disposables);
+            }
+
             _model.VisibleItems.ObserveAdd()
                 .Subscribe(x =>
                 {

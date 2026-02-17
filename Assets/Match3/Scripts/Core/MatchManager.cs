@@ -100,13 +100,15 @@ namespace Match3.Scripts.Core
             if (_debug)
             {
                 _levelDataSO = _levelDataSoTest;
+                _progressRepository = new ProgressRepository();
             }
             else
             {
-                _levelDataSO = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>().CurrentLevel;
+                _progressRepository = ServiceLocator.ServiceLocator.Global.Get<IProgressRepository>();
+                _levelDataSO = _progressRepository.CurrentLevel;
             }
 
-            _progressRepository = new ProgressRepository();
+            
             _origin = new Vector3(-_levelDataSO.width * _cellSize * 0.5f, -_levelDataSO.height * _cellSize * 0.5f, 0f);
             _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height, _cellSize, _origin, _debug);
             _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);

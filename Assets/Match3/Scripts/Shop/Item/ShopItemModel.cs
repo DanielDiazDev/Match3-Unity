@@ -1,4 +1,5 @@
 ﻿using Match3.Scripts.Data.Shop;
+using UnityEngine;
 
 namespace Match3.Scripts.Shop.Item
 {
@@ -11,6 +12,7 @@ namespace Match3.Scripts.Shop.Item
         public ShopRewardType RewardType { get; }
         public int RewardAmount { get; }
         public string PowerUpId { get; }
+        public Sprite Icon { get; }
 
         public ShopItemModel(ShopItemSO so)
         {
@@ -21,6 +23,7 @@ namespace Match3.Scripts.Shop.Item
             RewardType = so.rewardType;
             RewardAmount = so.rewardAmount;
             PowerUpId = so.powerUp != null ? so.powerUp.id : string.Empty;
+            Icon = so.icon;
         }
     }
     public enum ShopCategoryType

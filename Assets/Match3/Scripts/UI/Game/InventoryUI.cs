@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.Persistence;
+using Match3.Scripts.Player;
+using Match3.Scripts.Utils;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -13,7 +14,8 @@ namespace Match3.Scripts.UI.Game
         [SerializeField] private PowerUpSODatabase _powerUpDatabase;
         [SerializeField] private PowerUpItemUI _itemPrefab;
         [SerializeField] private Transform _container;
-
+        [SerializeField] private int _maxSlots = 3;
+        [SerializeField] private Sprite _emptySlotSprite;
         private IProgressRepository _repository;
         private string _selectedId;
         private List<PowerUpItemUI> _spawnedItems = new();
@@ -22,7 +24,18 @@ namespace Match3.Scripts.UI.Game
         public void Init(IProgressRepository repository)
         {
             _repository = repository;
+            EventDispatcherService.Instance.Subscribe<PlayerModel>(OnPlayerUpdated);
             Refresh();
+        }
+
+        private void OnPlayerUpdated(PlayerModel model)
+        {
+            Refresh();
+        }
+
+        private void OnDestroy()
+        {
+            EventDispatcherService.Instance.Unsubscribe<PlayerModel>(OnPlayerUpdated);
         }
 
 
@@ -31,29 +44,33 @@ namespace Match3.Scripts.UI.Game
             Clear();
 
             var purchased = _repository.GetPurchasedPowerUps();
-            if (purchased == null || purchased.Count == 0) return;
 
-            var owned = new List<(PowerUpSO data, int amount)>();
+            int spawnedCount = 0;
 
+            // Instanciar powerups comprados
             foreach (var so in _powerUpDatabase.powerUpSOs)
             {
-                if (purchased.TryGetValue(so.id, out int amount) && amount > 0)
+                if (spawnedCount >= _maxSlots)
+                    break;
+
+                if (purchased != null &&
+                    purchased.TryGetValue(so.id, out int amount) &&
+                    amount > 0)
                 {
-                    owned.Add((so, amount));
+                    var item = Instantiate(_itemPrefab, _container);
+                    item.Setup(so, amount);
+                    item.OnClicked += HandleSelection;
+                    _spawnedItems.Add(item);
+
+                    spawnedCount++;
                 }
             }
 
-            owned = owned.OrderBy(x => Random.value).ToList();
-            int count = Mathf.Min(3, owned.Count);
-
-            for (int i = 0; i < count; i++)
+            for (int i = spawnedCount; i < _maxSlots; i++)
             {
-                var item = Instantiate(_itemPrefab, _container);
-                item.Setup(owned[i].data, owned[i].amount);
-
-                item.OnClicked += HandleSelection;
-
-                _spawnedItems.Add(item);
+                var emptyItem = Instantiate(_itemPrefab, _container);
+                emptyItem.SetupEmpty(_emptySlotSprite);
+                _spawnedItems.Add(emptyItem);
             }
         }
 
