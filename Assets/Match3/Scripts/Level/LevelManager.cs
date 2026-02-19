@@ -4,6 +4,7 @@ using Match3.Scripts.Data.Level;
 using Match3.Scripts.Persistence;
 using Match3.Scripts.ServiceLocator;
 using Match3.Scripts.Shop;
+using Match3.Scripts.Sound;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,7 @@ namespace Match3.Scripts.Level
     {
         public static LevelManager Instance { get; private set; }
 
-        [SerializeField] private LevelDataSO[] _levelDataSos;
+        [SerializeField] private LevelDatabase _levelDatabase;
         [SerializeField] private GameObject _levelPrefab;
         [SerializeField] private Transform _levelParent;
         private readonly IProgressRepository _progressRepository =  new ProgressRepository();
@@ -27,7 +28,10 @@ namespace Match3.Scripts.Level
 
         private void Awake()
         {
-            ServiceLocator.ServiceLocator.Global.Register(_progressRepository);
+            if (!ServiceLocator.ServiceLocator.Global.TryGet<IProgressRepository>(out _))
+            {
+                ServiceLocator.ServiceLocator.Global.Register(_progressRepository);
+            }
             if(Instance == null)
             {
                 Instance = this;
@@ -42,9 +46,10 @@ namespace Match3.Scripts.Level
         private void Start()
         {
             GameData gameData;
+            ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlayMusic(SoundId.LevelSelectorMusic);
             if (!_progressRepository.Exists())
             {
-                gameData = _progressRepository.CreateNewGame(_levelDataSos);
+                gameData = _progressRepository.CreateNewGame(_levelDatabase.levels);
             }
             else
             {
@@ -58,6 +63,7 @@ namespace Match3.Scripts.Level
 
         private void OpenShop()
         {
+            ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
             SetLevelSelectorInteractable(false);
             var shopManager = FindFirstObjectByType<ShopManager>();
             if (shopManager != null)
@@ -75,8 +81,8 @@ namespace Match3.Scripts.Level
 
         private void GenerateLevels()
         {
-            var levelUseCase = new LevelUseCase(_progressRepository, _loadScene, _levelDataSos);
-            foreach (var levelDataSo in _levelDataSos)
+            var levelUseCase = new LevelUseCase(_progressRepository, _loadScene, _levelDatabase.levels);
+            foreach (var levelDataSo in _levelDatabase.levels)
             {
                 var levelViewModel = new LevelViewModel();
                 
@@ -93,12 +99,14 @@ namespace Match3.Scripts.Level
 
         public void ShowLevelDetail()
         {
+            ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
             _levelDetailView.Show();
             SetLevelSelectorInteractable(false);
         }
 
         public void HideLevelDetail()
         {
+            ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
             _levelDetailView.Hide();
             SetLevelSelectorInteractable(true);
         }

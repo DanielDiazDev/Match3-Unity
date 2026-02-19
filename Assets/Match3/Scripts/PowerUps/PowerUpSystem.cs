@@ -6,6 +6,7 @@ using Match3.Scripts.General;
 using Match3.Scripts.Grid;
 using Match3.Scripts.Quests;
 using Match3.Scripts.Score;
+using Match3.Scripts.Sound;
 using Match3.Scripts.Vfx;
 using PrimeTween;
 using UnityEngine;
@@ -61,6 +62,7 @@ namespace Match3.Scripts.PowerUps
 
         public void ClearCell(int x, int y)
         {
+            ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Match);
             var gridObject = _gridSystem.GetValue(x, y);
             if (gridObject == null || gridObject.IsEmpty()) return;
 

@@ -1,4 +1,5 @@
 ﻿using Match3.Scripts.Shop.Item;
+using Match3.Scripts.Sound;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,8 +21,16 @@ namespace Match3.Scripts.Shop
         {
             _model = model;
 
-            _powerUpsTab.onClick.AddListener(() => _model.SelectPowerUpsTab.Execute());
-            _statsTab.onClick.AddListener(() => _model.SelectStatsTab.Execute());
+            _powerUpsTab.onClick.AddListener(() =>
+            {
+                ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
+                _model.SelectPowerUpsTab.Execute();
+            });
+            _statsTab.onClick.AddListener(() =>
+            {
+                ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
+                _model.SelectStatsTab.Execute();
+            });
             _closeButton.onClick.AddListener(Hide);
 
             _model.VisibleItems
@@ -44,6 +53,7 @@ namespace Match3.Scripts.Shop
 
         public void Hide()
         {
+            ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
             Level.LevelManager.Instance.SetLevelSelectorInteractable(true);
             gameObject.SetActive(false);
             _closeButton.gameObject.SetActive(false);

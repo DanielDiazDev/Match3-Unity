@@ -2,6 +2,8 @@
 using Match3.Scripts.Data.Level;
 using Match3.Scripts.Level;
 using Match3.Scripts.Persistence;
+using Match3.Scripts.ServiceLocator;
+using Match3.Scripts.Sound;
 
 public class LevelUseCase : ILevelUseCase
 {
@@ -46,6 +48,7 @@ public class LevelUseCase : ILevelUseCase
         _progressRepository.Save(gameData);
 
         _progressRepository.SetLevel(levelData);
+        ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
         _loadScene.Load();
     }
 }

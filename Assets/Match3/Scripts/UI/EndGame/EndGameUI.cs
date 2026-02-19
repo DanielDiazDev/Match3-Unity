@@ -2,6 +2,7 @@
 using Match3.Scripts.Core;
 using Match3.Scripts.Event;
 using Match3.Scripts.Event.Data;
+using Match3.Scripts.Sound;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -34,12 +35,14 @@ namespace Match3.Scripts.UI.EndGame
         {
             if (eventData.EventId == EventIds.ShowLose)
             {
+                ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlayMusic(SoundId.GameOver);
                 var showLoseEventData = (ShowLoseEventData)eventData;
                 ShowLose(showLoseEventData.Score);
             }
 
             if (eventData.EventId == EventIds.ShowWin)
             {
+                ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlayMusic(SoundId.Victory);
                 var showWinEventData = (ShowWinEventData)eventData;
                 ShowWin(showWinEventData.Score);
             }

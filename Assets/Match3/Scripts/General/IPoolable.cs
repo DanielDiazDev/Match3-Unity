@@ -1,4 +1,6 @@
-﻿namespace Match3.Scripts.General
+﻿using System;
+
+namespace Match3.Scripts.General
 {
     public interface IPoolable
     {

@@ -8,6 +8,7 @@ using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.PowerUps;
 using Match3.Scripts.Score;
+using Match3.Scripts.Sound;
 using UnityEngine;
 
 namespace Match3.Scripts.Core
@@ -41,7 +42,7 @@ namespace Match3.Scripts.Core
         public async UniTask<bool> ExecuteMove(Vector2Int a, Vector2Int b)
         {
             _scoreSystem.ResetMultiplier();
-
+            ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Swap);
             await _swapper.SwapTile(a, b);
 
             bool powerUpTriggered = false;
@@ -70,6 +71,7 @@ namespace Match3.Scripts.Core
 
             if (!matches.Any() && !powerUpTriggered)
             {
+                ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Swap);
                 await _swapper.SwapTile(b, a);
                 return false;
             }

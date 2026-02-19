@@ -16,6 +16,7 @@ using Match3.Scripts.Persistence;
 using Match3.Scripts.PowerUps;
 using Match3.Scripts.Quests;
 using Match3.Scripts.Score;
+using Match3.Scripts.Sound;
 using Match3.Scripts.UI.Game;
 using Reflex.Attributes;
 using UnityEngine;
@@ -77,6 +78,7 @@ namespace Match3.Scripts.Core
 
         private void Start()
         {
+            ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlayMusic(SoundId.GameMusic);
             EventQueue.Instance.Subscribe(EventIds.SwipeDetected, this);
             InitializeSystems();
             InitializeGrid();
@@ -140,11 +142,7 @@ namespace Match3.Scripts.Core
             //     _inventoryViewModel.IsBusy.Value = busy;
             // }
         }
-        public void SelectPowerUp(string id)
-        {
-            if (_isBusy || _gameEnded) return;
-            _selectedPowerUpId = id;
-        }
+     
         private void ClearSelectedPowerUp()
         {
             _selectedPowerUpId = null;
