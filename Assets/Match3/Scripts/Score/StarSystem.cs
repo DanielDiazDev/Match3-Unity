@@ -52,7 +52,7 @@ namespace Match3.Scripts.Score
             UpdateStarPower();
         }
 
-        private void UpdateStarPower()
+        public void UpdateStarPower()
         {
             var score = _scoreSystem.CurrentScore;
             var completedQuests = _questSystem.CompletedQuestsCount;

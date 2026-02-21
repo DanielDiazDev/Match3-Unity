@@ -307,6 +307,9 @@ namespace Match3.Scripts.Core
         private async UniTask HandleLevelWin()
         {
             _gameEnded = true;
+            
+            // Sync stars before saving to avoid event delay issues
+            _starSystem.UpdateStarPower();
             _starSystem.ForceMinimumStar();
             
             _progressRepository.UpdateLevelProgress(
@@ -324,6 +327,13 @@ namespace Match3.Scripts.Core
                         _remainingMoves = moves;
                         EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves, 1));
                     });
+                
+                // Sync and save again after post-game points are added
+                _starSystem.UpdateStarPower();
+                _progressRepository.UpdateLevelProgress(
+                    _levelDataSO.id,
+                    _starSystem.CurrentStars,
+                    true);
             }
 
             var showWinEventData = new ShowWinEventData(

@@ -1,165 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13aa1e31e4ad458aa276f84b6a28d44c, type: 3}
-  m_Name: Level2
-  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Level.LevelDataSO
-  id: 2
-  levelName: Level2
-  width: 5
-  height: 5
-  initialGridData:
-    _serializedList:
-    - Key: {x: 0, y: 0}
-      Value:
-        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 0, y: 1}
-      Value:
-        tile: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 0, y: 2}
-      Value:
-        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 0, y: 3}
-      Value:
-        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 0, y: 4}
-      Value:
-        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 1, y: 0}
-      Value:
-        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 1, y: 1}
-      Value:
-        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 1, y: 2}
-      Value:
-        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 1, y: 3}
-      Value:
-        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 1, y: 4}
-      Value:
-        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 2, y: 0}
-      Value:
-        tile: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 2, y: 1}
-      Value:
-        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 2, y: 2}
-      Value:
-        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 2, y: 3}
-      Value:
-        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 2, y: 4}
-      Value:
-        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 3, y: 0}
-      Value:
-        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 3, y: 1}
-      Value:
-        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 3, y: 2}
-      Value:
-        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 3, y: 3}
-      Value:
-        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 3, y: 4}
-      Value:
-        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 4, y: 0}
-      Value:
-        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 4, y: 1}
-      Value:
-        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 4, y: 2}
-      Value:
-        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 4, y: 3}
-      Value:
-        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-    - Key: {x: 4, y: 4}
-      Value:
-        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
-        block: {fileID: 0}
-        layer: {fileID: 0}
-  availableTiles:
-  - {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
-  - {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
-  - {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
-  - {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
-  - {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
-  - {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
-  - {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
-  - {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
-  quests:
-  - {fileID: 3508731490133580288}
-  maxMoves: 20
-  difficulty: 1
-  starThresholds: e8030000d0070000b80b0000
-  objectiveBonus: 500
-  background: {fileID: 0}
---- !u!114 &3508731490133580288
+--- !u!114 &-8166615333652151458
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -174,4 +15,375 @@ MonoBehaviour:
   objectiveDescription: 
   icon: {fileID: 0}
   targetPiece: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
-  amountRequired: 3
+  amountRequired: 20
+--- !u!114 &-3099054228364717124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6fe82035ebfada44a0632a079109e39, type: 3}
+  m_Name: Destroy_Yellow
+  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Quests.PieceDestructionObjectiveSO
+  objectiveDescription: 
+  icon: {fileID: 0}
+  targetPiece: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
+  amountRequired: 25
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13aa1e31e4ad458aa276f84b6a28d44c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.Data.Level.LevelDataSO
+  id: 2
+  levelName: Level2
+  width: 8
+  height: 8
+  initialGridData:
+    _serializedList:
+    - Key: {x: 0, y: 0}
+      Value:
+        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 0, y: 1}
+      Value:
+        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 0, y: 2}
+      Value:
+        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 0, y: 3}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 0, y: 4}
+      Value:
+        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 1, y: 0}
+      Value:
+        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 1, y: 1}
+      Value:
+        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 1, y: 2}
+      Value:
+        tile: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 1, y: 3}
+      Value:
+        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 1, y: 4}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 2, y: 0}
+      Value:
+        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 2, y: 1}
+      Value:
+        tile: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 2, y: 2}
+      Value:
+        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 2, y: 3}
+      Value:
+        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 2, y: 4}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 3, y: 0}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 3, y: 1}
+      Value:
+        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 3, y: 2}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 3, y: 3}
+      Value:
+        tile: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 3, y: 4}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 4, y: 0}
+      Value:
+        tile: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 4, y: 1}
+      Value:
+        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 4, y: 2}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 4, y: 3}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 4, y: 4}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 0, y: 7}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 1, y: 7}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 2, y: 7}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 3, y: 7}
+      Value:
+        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 4, y: 7}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 5, y: 7}
+      Value:
+        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 6, y: 7}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 7, y: 7}
+      Value:
+        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 0, y: 6}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 1, y: 6}
+      Value:
+        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 2, y: 6}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 3, y: 6}
+      Value:
+        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 4, y: 6}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 5, y: 6}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 6, y: 6}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 7, y: 6}
+      Value:
+        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 0, y: 5}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 1, y: 5}
+      Value:
+        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 2, y: 5}
+      Value:
+        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 3, y: 5}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 4, y: 5}
+      Value:
+        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 5, y: 5}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 6, y: 5}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 7, y: 5}
+      Value:
+        tile: {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 5, y: 4}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 6, y: 4}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 7, y: 4}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 5, y: 3}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 6, y: 3}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 7, y: 3}
+      Value:
+        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 5, y: 2}
+      Value:
+        tile: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 6, y: 2}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 7, y: 2}
+      Value:
+        tile: {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 5, y: 1}
+      Value:
+        tile: {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 6, y: 1}
+      Value:
+        tile: {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 7, y: 1}
+      Value:
+        tile: {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 5, y: 0}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 6, y: 0}
+      Value:
+        tile: {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+    - Key: {x: 7, y: 0}
+      Value:
+        tile: {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
+        block: {fileID: 0}
+        layer: {fileID: 0}
+  availableTiles:
+  - {fileID: 11400000, guid: b433bb67b40d9dd4aac4f639438d81b9, type: 2}
+  - {fileID: 11400000, guid: 602654ffea2fc6c4aacb46647abdcacf, type: 2}
+  - {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
+  - {fileID: 11400000, guid: d3fae0df6121ca3408e2e23ad1988a03, type: 2}
+  - {fileID: 11400000, guid: ba22243807baac64a9a32455c1934518, type: 2}
+  - {fileID: 11400000, guid: 5e6a666126a0cbf4bb5506dbc9505ebd, type: 2}
+  - {fileID: 11400000, guid: d79607bc5d7e6c7448ad5d13c24070b2, type: 2}
+  - {fileID: 11400000, guid: 3e73fde20c99d294aa1ba0067183051c, type: 2}
+  quests:
+  - {fileID: -3099054228364717124}
+  - {fileID: -8166615333652151458}
+  maxMoves: 25
+  difficulty: 1
+  starThresholds: dc050000c4090000ac0d0000
+  objectiveBonus: 500
+  background: {fileID: 0}

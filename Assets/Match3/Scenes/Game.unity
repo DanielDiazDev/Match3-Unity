@@ -3228,7 +3228,7 @@ MonoBehaviour:
   - {fileID: 170694824}
   - {fileID: 1904032433}
   starOffSprite: {fileID: -2977585325673427957, guid: ee5c96f37a32b5c4a96bb3809ccbda24, type: 3}
-  starOnSprite: {fileID: 7111424381502533728, guid: 9f95a095f0b658544ae6cddef20a712f, type: 3}
+  starOnSprite: {fileID: 5199979006384268662, guid: f7026d933998c9d4faebc4caff0e1244, type: 3}
   fillSpeed: 5
 --- !u!1 &1975343052
 GameObject:
