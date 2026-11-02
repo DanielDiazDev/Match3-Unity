@@ -150,7 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Match3.Scripts.Core.MatchManager
   _cellSize: 0.5
   _debug: 0
-  _levelDataSoTest: {fileID: 11400000, guid: d0174aea3cf46134291c0a3a5328c36f, type: 2}
+  _levelDataSoTest: {fileID: 11400000, guid: 8294f0d572268b44189e872dfe24182a, type: 2}
   _powerUpSystem: {fileID: 1328914920}
   _piecesConfigurationSO: {fileID: 11400000, guid: 6eef64a83c5b8eb4bb41e5db588e776b, type: 2}
   _selectedCellDebug:
@@ -602,9 +602,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 196517728}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49e104d75e6302b4488d40f1cdbf05ed, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b5c83293d524724b1db489a0ee866d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Match3.Scripts.UI.Inventory.InventoryView
+  _powerUpDatabase: {fileID: 11400000, guid: 0f4a33b9593df4a40a4cc80cf3c9ecaf, type: 2}
+  _itemPrefab: {fileID: 8833083351538055443, guid: aa9483f06b4b2b14abc3505ad144869e, type: 3}
+  _container: {fileID: 196517729}
+  _maxSlots: 3
+  _emptySlotSprite: {fileID: 0}
 --- !u!114 &196517732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -824,6 +829,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -1316,7 +1322,7 @@ GameObject:
   - component: {fileID: 722947598}
   - component: {fileID: 722947601}
   m_Layer: 5
-  m_Name: Background
+  m_Name: Inventory
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2686,6 +2692,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -2987,6 +2994,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0

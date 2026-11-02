@@ -1,14 +1,9 @@
 using Assets.Match3.Scripts.Grid;
 using Cysharp.Threading.Tasks;
-using Match3.Scripts.Data.Item;
-using Match3.Scripts.Grid;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Match3.Scripts.Data.Level;
 using Match3.Scripts.Event;
 using Match3.Scripts.Event.Data;
-using Match3.Scripts.General;
+using Match3.Scripts.Grid;
 using Match3.Scripts.Match.Systems;
 using Match3.Scripts.Match.Systems.Find;
 using Match3.Scripts.Match.Systems.Spawner;
@@ -19,6 +14,10 @@ using Match3.Scripts.Score;
 using Match3.Scripts.Sound;
 using Match3.Scripts.UI.Game;
 using Reflex.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Match3.Scripts.Core.States;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -29,51 +28,56 @@ namespace Match3.Scripts.Core
         [SerializeField] private float _cellSize = 1f;
         [SerializeField] private bool _debug = true;
         [SerializeField] private LevelDataSO _levelDataSoTest;
-        [SerializeField] private PowerUpSystem  _powerUpSystem; //No va
-        [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO; //No va
-        private IScoreSystem _scoreSystem;
-        private IQuestSystem _questSystem;//No va
+        [SerializeField] private PowerUpSystem  _powerUpSystem;
+        [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO;
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
         [SerializeField] private GameObject _backgroundTilePrefab;
         [SerializeField] private InventoryUI _inventoryUI;
         [SerializeField] private GameObject _gameEnd;
+
+        private MatchStateContext _ctx;
+        private MatchStateMachine _stateMachine;
+
+        private IScoreSystem _scoreSystem;
+        private IQuestSystem _questSystem;
         private StarSystem _starSystem;
-        private Vector3 _origin; 
-        private int _remainingMoves;//No va
-        private LevelDataSO _levelDataSO;
-        private GridSystem<GridObject>  _gridSystem;
-        public bool IsBusy => _isBusy;
-        private bool _isBusy;
-        private GridObject _selectedCell;
-        //TODO: Agregarle interface a los sistemas de gameplay
-        private PieceSwapper _pieceSwapper;
-        private RefillSystem _refillSystem;
+        private IProgressRepository _progressRepository;
+
+        private GridSystem<GridObject> _gridSystem;
         private PieceSpawner _pieceSpawner;
+        private PieceSwapper _pieceSwapper;
         private MatchFinder _matchFinder;
         private MatchProcessor _matchProcessor;
         private GravitySystem _gravitySystem;
+        private RefillSystem _refillSystem;
         private MoveValidator _moveValidator;
         private ShuffleBoardSystem _shuffleBoardSystem;
-        private IProgressRepository _progressRepository;
-        private TurnFlowController _turnFlowController;
         private BoardResolver _boardResolver;
+        private TurnFlowController _turnFlowController;
         private EndGameSequenceController _endGameController;
+        private LevelDataSO _levelDataSO;
+        public bool IsBusy => _ctx != null && _ctx.IsBusy;
         private bool _gameEnded;
+        private GridObject _selectedCell;
         private string _selectedPowerUpId;
+        private Vector3 _origin;
+
         private void OnDestroy()
         {
             EventQueue.Instance.Unsubscribe(EventIds.SwipeDetected, this);
         }
+
         [Inject]
         public void Construct(IScoreSystem scoreSystem)
         {
             _scoreSystem = scoreSystem;
         }
+
         public void Process(EventData eventData)
         {
-            if(eventData.EventId != EventIds.SwipeDetected) return;
-            var swipeDetectedEventData = (SwipeDetectedEventData)eventData;
-            OnSwipeItem(swipeDetectedEventData.worldStart, swipeDetectedEventData.direction);
+            if (eventData.EventId != EventIds.SwipeDetected) return;
+            var swipe = (SwipeDetectedEventData)eventData;
+            OnSwipeItem(swipe.worldStart, swipe.direction);
         }
 
         private void Start()
@@ -81,22 +85,27 @@ namespace Match3.Scripts.Core
             ServiceLocator.ServiceLocator.Global.Get<SoundManager>().PlayMusic(SoundId.GameMusic);
             EventQueue.Instance.Subscribe(EventIds.SwipeDetected, this);
             InitializeSystems();
-            InitializeGrid();
+            InitializeStateMachine();
             _inventoryUI.OnPowerUpSelected += OnPowerUpSelected;
         }
+
         private void OnPowerUpSelected(string id)
         {
             _selectedPowerUpId = id;
         }
+
         private void Update()
         {
-            //if (!_debug) return;
+            if (_ctx == null || _ctx.GameEnded) return;
+
+            if (_stateMachine.CurrentState != MatchState.Idle) return;
 
             if (Touchscreen.current != null && Touchscreen.current.press.wasPressedThisFrame)
             {
                 HandleClick();
             }
         }
+
         private void InitializeSystems()
         {
             if (_debug)
@@ -110,87 +119,120 @@ namespace Match3.Scripts.Core
                 _levelDataSO = _progressRepository.CurrentLevel;
             }
 
-            
-            _origin = new Vector3(-_levelDataSO.width * _cellSize * 0.5f, -_levelDataSO.height * _cellSize * 0.5f, 0f);
-            _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height, _cellSize, _origin, _debug);
-            _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
-            _pieceSwapper = new PieceSwapper(_gridSystem);
-            _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _questSystem = new QuestSystem(_levelDataSO.quests);
-            _starSystem = new StarSystem(_levelDataSO, _questSystem, _scoreSystem);
+            _origin = new Vector3(-_levelDataSO.width * _cellSize * 0.5f,
+                                  -_levelDataSO.height * _cellSize * 0.5f, 0f);
+            _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height,
+                                                              _cellSize, _origin, _debug);
 
-            _remainingMoves = _levelDataSO.maxMoves;
-            EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves));
+            _pieceSpawner   = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
+            _pieceSwapper   = new PieceSwapper(_gridSystem);
+            _matchFinder    = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
+            _questSystem    = new QuestSystem(_levelDataSO.quests);
+            _starSystem     = new StarSystem(_levelDataSO, _questSystem, _scoreSystem);
+
             _powerUpSystem.Init(_gridSystem, _scoreSystem, _questSystem);
             _matchProcessor = new MatchProcessor(_gridSystem, _powerUpSystem, _scoreSystem);
-            _gravitySystem = new GravitySystem(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _refillSystem = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform);
-            _moveValidator = new MoveValidator(_gridSystem, _matchFinder);
+            _gravitySystem  = new GravitySystem(_gridSystem, _levelDataSO.width, _levelDataSO.height);
+            _refillSystem   = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform);
+            _moveValidator  = new MoveValidator(_gridSystem, _matchFinder);
             _shuffleBoardSystem = new ShuffleBoardSystem(_gridSystem, _matchFinder, _moveValidator);
-            _boardResolver =
-                new BoardResolver(_matchFinder, _matchProcessor, _gravitySystem, _refillSystem, _gridSystem, _scoreSystem);
-            _turnFlowController = new TurnFlowController(_pieceSwapper, _moveValidator, _boardResolver, _powerUpSystem,
-                _scoreSystem, _gridSystem, _matchFinder);
-            _endGameController = new EndGameSequenceController(_gridSystem, _powerUpSystem, _boardResolver);
+            _boardResolver  = new BoardResolver(_matchFinder, _matchProcessor, _gravitySystem,
+                                                _refillSystem, _gridSystem, _scoreSystem);
+            _turnFlowController = new TurnFlowController(_pieceSwapper, _moveValidator, _boardResolver,
+                _powerUpSystem, _scoreSystem, _gridSystem, _matchFinder);
+            _endGameController  = new EndGameSequenceController(_gridSystem, _powerUpSystem, _boardResolver);
+
             _inventoryUI.Init(_progressRepository);
         }
-        private void SetBusy(bool busy)
+
+        private async UniTask InitializeStateMachineAsync()
         {
-            _isBusy = busy;
-            // if (_inventoryViewModel != null)
-            // {
-            //     _inventoryViewModel.IsBusy.Value = busy;
-            // }
+            _ctx = new MatchStateContext
+            {
+                GridSystem           = _gridSystem,
+                PieceSpawner         = _pieceSpawner,
+                PieceSwapper         = _pieceSwapper,
+                MatchFinder          = _matchFinder,
+                MatchProcessor       = _matchProcessor,
+                GravitySystem        = _gravitySystem,
+                RefillSystem         = _refillSystem,
+                MoveValidator        = _moveValidator,
+                ShuffleBoardSystem   = _shuffleBoardSystem,
+                PowerUpSystem        = _powerUpSystem,
+                BoardResolver        = _boardResolver,
+                TurnFlowController   = _turnFlowController,
+                EndGameController    = _endGameController,
+
+                ScoreSystem          = _scoreSystem,
+                QuestSystem          = _questSystem,
+                StarSystem           = _starSystem,
+                ProgressRepository   = _progressRepository,
+
+                LevelDataSO          = _levelDataSO,
+                RemainingMoves       = _levelDataSO.maxMoves,
+                GameEnded            = false,
+                InventoryUI          = _inventoryUI,
+                GameEnd              = _gameEnd,
+                Transform            = transform,
+            };
+
+            _ctx.OnMovesChanged += moves =>
+            {
+                EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, moves, 1));
+            };
+            _ctx.OnBusyChanged += busy => {  };
+
+            var states = new Dictionary<MatchState, IMatchState>
+            {
+                { MatchState.Idle,             new IdleState(_ctx) },
+                { MatchState.GeneratePieces,   new GeneratePiecesState(_ctx, _backgroundTilePrefab) },
+                { MatchState.Swap,             new SwapState(_ctx) },
+                { MatchState.FindMatch,        new FindMatchState(_ctx) },
+                { MatchState.Destroy,          new DestroyState(_ctx) },
+                { MatchState.PowerUpGeneration,new PowerUpGenerationState(_ctx) },
+                { MatchState.PowerUpActivate,  new PowerUpActivateState(_ctx) },
+                { MatchState.Gravity,          new GravityState(_ctx) },
+                { MatchState.Refill,           new RefillState(_ctx) },
+                { MatchState.Shuffle,          new ShuffleState(_ctx) },
+                { MatchState.GameOver,         new GameOverState(_ctx) },
+                { MatchState.LevelWin,         new LevelWinState(_ctx) },
+            };
+
+            _stateMachine = new MatchStateMachine(states);
+
+            var next = await _stateMachine.Initialize(MatchState.GeneratePieces);
+
+            if (next != MatchState.None && next != _stateMachine.CurrentState)
+            {
+                next = await _stateMachine.TransitionTo(next);
+            }
+
+            while (next != MatchState.Idle && next != MatchState.None)
+            {
+                next = await _stateMachine.TransitionTo(next);
+            }
+
+            if (next == MatchState.Idle && _stateMachine.CurrentState != MatchState.Idle)
+            {
+                await _stateMachine.TransitionTo(MatchState.Idle);
+            }
         }
-     
+
+        private void InitializeStateMachine()
+        {
+            InitializeStateMachineAsync().Forget();
+        }
+
+
         private void ClearSelectedPowerUp()
         {
             _selectedPowerUpId = null;
         }
-        private void InitializeGrid()
-        {
-            for (var x = 0; x < _levelDataSO.width; x++) 
-            {
-                for (var y = 0; y < _levelDataSO.height; y++)
-                {
-                    var position = new Vector2Int(x, y);
-                    
-                    if (!_levelDataSO.initialGridData.TryGetValue(position, out var cellData))
-                    {
-                        var gridObject = new GridObject(_gridSystem, x, y);
-                        gridObject.SetPlayable(false);
-                        _gridSystem.SetValue(x, y, gridObject);
-                        continue;
-                    }
-                    SpawnBackground(position);
-                    if (cellData.block != null)
-                    {
-                        _pieceSpawner.SpawnBlock(cellData.block.id, position, transform);
-                    }
-                    else if (cellData.tile != null)
-                    {
-                        var piece = _pieceSpawner.Spawn(cellData.tile.id, position, transform);
-                       // piece.PlaySpawnAnimation();
-                    }
-                    else
-                    {
-                        var gridObject = new GridObject(_gridSystem, x, y);
-                        gridObject.SetPlayable(true);
-                        _gridSystem.SetValue(x, y, gridObject);
-                    }
-
-                    if (cellData.layer != null)
-                    {
-                        _pieceSpawner.SpawnLayer(cellData.layer.id, position, transform);
-                    }
-                }
-            }
-        }
-        private void SpawnBackground(Vector2Int position) => Instantiate(_backgroundTilePrefab, _gridSystem.GetWorldPositionCenter(position.x, position.y), Quaternion.identity, transform);
 
         private void HandleClick()
         {
-            if (_isBusy || _gameEnded) return;
+            if (_ctx == null || _ctx.IsBusy || _ctx.GameEnded) return;
+            if (_stateMachine.CurrentState != MatchState.Idle) return;
 
             var worldPos = Camera.main.ScreenToWorldPoint(Touchscreen.current.position.ReadValue());
             worldPos.z = 0f;
@@ -202,40 +244,56 @@ namespace Match3.Scripts.Core
 
             if (!string.IsNullOrEmpty(_selectedPowerUpId))
             {
+                _ctx.SelectedPowerUpId = _selectedPowerUpId;
+                _ctx.PendingPowerUpPos = gridPos;
                 UsePowerUpAt(gridPos).Forget();
                 return;
             }
+
             _selectedCell = _gridSystem.GetValue(gridPos.x, gridPos.y);
             _selectedCellDebug.Set(_selectedCell);
         }
 
         private async UniTask UsePowerUpAt(Vector2Int gridPos)
         {
-            if (_isBusy || _gameEnded) return;
+            if (_ctx == null || _ctx.IsBusy || _ctx.GameEnded) return;
 
             var gridObject = _gridSystem.GetValue(gridPos.x, gridPos.y);
-
             if (gridObject == null || gridObject.IsEmpty() || !gridObject.IsPlayable())
                 return;
 
-            SetBusy(true);
-            _inventoryUI.Refresh();
-            _powerUpSystem.ChangeToPowerUp(_selectedPowerUpId, gridPos);
+            _ctx.SelectedPowerUpId = _selectedPowerUpId;
+            _ctx.PendingPowerUpPos = gridPos;
+            await RunTurnFrom(MatchState.PowerUpActivate);
 
-            await UniTask.Yield(); 
-            _powerUpSystem.TriggerPowerUp(gridPos);
-            await CommandQueue.Instance.WaitForAllCommands();
-            await _boardResolver.Resolve(_levelDataSO.difficulty);
-            _progressRepository.ConsumePowerUp(_selectedPowerUpId);
             ClearSelectedPowerUp();
-            await EvaluateGameState();
-            SetBusy(false);
         }
 
+        private async UniTask RunTurnFrom(MatchState startState)
+        {
+            if (_ctx == null || _ctx.IsBusy || _ctx.GameEnded) return;
 
+            var next = await _stateMachine.TransitionTo(startState);
+
+            while (next != MatchState.Idle && next != MatchState.None)
+            {
+                next = await _stateMachine.TransitionTo(next);
+            }
+
+          
+            if (next == MatchState.Idle && _stateMachine.CurrentState != MatchState.Idle)
+            {
+                await _stateMachine.TransitionTo(MatchState.Idle);
+            }
+
+            await EvaluateGameStateAfterTurn();
+        }
 
         private void OnSwipeItem(Vector2 worldPos, Vector2Int direction)
         {
+            if (_ctx == null || _ctx.IsBusy || _ctx.GameEnded) return;
+            if (_stateMachine.CurrentState != MatchState.Idle) return;
+
             var a = _gridSystem.GetXY(worldPos);
             var b = a + direction;
 
@@ -245,149 +303,75 @@ namespace Match3.Scripts.Core
             if (IsEmptyPosition(a) || IsEmptyPosition(b))
                 return;
 
-            TryHandleMove(a, b).Forget();
+            _ctx.PendingSwap = (a, b);
+            RunTurnFrom(MatchState.Swap).Forget();
         }
-        private async UniTask TryHandleMove(Vector2Int a, Vector2Int b)
+
+        private async UniTask EvaluateGameStateAfterTurn()
         {
-            if (_isBusy || _gameEnded)
-                return;
+            if (_ctx == null || _ctx.GameEnded) return;
 
-            SetBusy(true);
-
-            var validMove = await _turnFlowController.ExecuteMove(a, b);
-
-            if (validMove)
-            {
-                _remainingMoves--;
-                EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves, 1));
-            }
-
-            await _turnFlowController.Resolve(_levelDataSO.difficulty);
-
-            await EvaluateGameState();
-
-            SetBusy(false);
-        }
-        
-        private async UniTask EvaluateGameState()
-        {
             bool isWin = _questSystem.ActiveQuests.All(q => q.IsReached);
 
             if (isWin)
             {
-                await HandleLevelWin();
+                await _stateMachine.TransitionTo(MatchState.LevelWin);
                 return;
             }
 
-            if (_remainingMoves <= 0)
+            if (_ctx.RemainingMoves <= 0)
             {
-                await HandleGameOver();
+                await _stateMachine.TransitionTo(MatchState.GameOver);
                 return;
             }
 
             if (!_moveValidator.HasAnyValidMove())
             {
                 Debug.Log("⚠ No hay movimientos, reshuffle necesario");
-                _shuffleBoardSystem.Shuffle();
+                await _stateMachine.TransitionTo(MatchState.Shuffle);
             }
-        }
-
-        private async UniTask HandleGameOver()
-        {
-            Debug.Log("[MatchManager] Game Over! Moves finished without completing objectives.");
-            _gameEnded = true;
-            await CommandQueue.Instance.WaitForAllCommands();
-            _gameEnd.SetActive(true);
-            var showLoseEventData = new ShowLoseEventData(
-                EventIds.ShowLose,
-                _scoreSystem.CurrentScore);
-            EventQueue.Instance.EnqueueEvent(showLoseEventData);
-        }
-
-        private async UniTask HandleLevelWin()
-        {
-            _gameEnded = true;
-            
-            // Sync stars before saving to avoid event delay issues
-            _starSystem.UpdateStarPower();
-            _starSystem.ForceMinimumStar();
-            
-            _progressRepository.UpdateLevelProgress(
-                _levelDataSO.id,
-                _starSystem.CurrentStars,
-                true);
-
-            if (_remainingMoves > 0)
-            {
-                await _endGameController.ExecutePostGame(
-                    _remainingMoves,
-                    _levelDataSO.difficulty,
-                    moves =>
-                    {
-                        _remainingMoves = moves;
-                        EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, _remainingMoves, 1));
-                    });
-                
-                // Sync and save again after post-game points are added
-                _starSystem.UpdateStarPower();
-                _progressRepository.UpdateLevelProgress(
-                    _levelDataSO.id,
-                    _starSystem.CurrentStars,
-                    true);
-            }
-
-            var showWinEventData = new ShowWinEventData(
-                EventIds.ShowWin,
-                _scoreSystem.CurrentScore);
-
-            await CommandQueue.Instance.WaitForAllCommands();
-            _gameEnd.SetActive(true);
-            EventQueue.Instance.EnqueueEvent(showWinEventData);
         }
         
-        private bool IsValidPosition(Vector2Int gridPosition) => gridPosition.x >= 0 && gridPosition.x < _levelDataSO.width && gridPosition.y >= 0 && gridPosition.y < _levelDataSO.height;
+        
+
+        private bool IsValidPosition(Vector2Int gridPosition) =>
+            gridPosition.x >= 0 && gridPosition.x < _levelDataSO.width &&
+            gridPosition.y >= 0 && gridPosition.y < _levelDataSO.height;
+
         private bool IsEmptyPosition(Vector2Int gridPosition) =>
             _gridSystem.GetValue(gridPosition.x, gridPosition.y)?.GetPiece() == null;
-
-        
-
-        
     }
-}
 
-[Serializable]
-public class GridObjectDebugView
-{
-    public int x;
-    public int y;
-    public bool isEmpty;
-
-    public string tileName;
-    public string tileType;
-    //public PowerUpType powerUp;
-
-    public void Set(GridObject cell)
+    [Serializable]
+    public class GridObjectDebugView
     {
-        if (cell == null)
-            return;
+        public int x;
+        public int y;
+        public bool isEmpty;
 
-        x = cell.X;
-        y = cell.Y;
-        isEmpty = cell.IsEmpty();
+        public string tileName;
+        public string tileType;
 
-        var tile = cell.GetPiece();
-        if (tile != null)
+        public void Set(GridObject cell)
         {
-            tileName = tile.name;
-            tileType = tile.GetTile().name;
-          //  powerUp = tile.HasPowerUp ? tile.PowerUp : PowerUpType.None;
-        }
-        else
-        {
-            tileName = "None";
-            tileType = "None";
-         //   powerUp = PowerUpType.None;
+            if (cell == null)
+                return;
+
+            x = cell.X;
+            y = cell.Y;
+            isEmpty = cell.IsEmpty();
+
+            var tile = cell.GetPiece();
+            if (tile != null)
+            {
+                tileName = tile.name;
+                tileType = tile.GetTile().name;
+            }
+            else
+            {
+                tileName = "None";
+                tileType = "None";
+            }
         }
     }
-
 }

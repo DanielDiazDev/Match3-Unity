@@ -10,6 +10,7 @@ public class LevelUseCase : ILevelUseCase
     private IProgressRepository _progressRepository;
     private ILoadScene _loadScene;
     private LevelDataSO[] _allLevels;
+    private bool _isSelectingLevel; // Evita llamadas múltiples (doble clic)
 
     public LevelUseCase(IProgressRepository progressRepository,
         ILoadScene loadScene,
@@ -31,6 +32,10 @@ public class LevelUseCase : ILevelUseCase
 
     public void SelectLevel(LevelDataSO levelData)
     {
+        // Evitar llamadas múltiples (doble clic en el botón de start)
+        if (_isSelectingLevel)
+            return;
+
         var gameData = _progressRepository.Load();
         var progress = gameData.levels.FirstOrDefault(l => l.id == levelData.id);
 
@@ -43,6 +48,17 @@ public class LevelUseCase : ILevelUseCase
             return;
         }
 
+        // Si ya estamos en este nivel, no descontar otro corazón
+        if (gameData.currentLevel == levelData.id)
+        {
+            _progressRepository.SetLevel(levelData);
+            ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
+            _loadScene.Load();
+            return;
+        }
+
+        _isSelectingLevel = true;
+
         gameData.hearts--;
         gameData.currentLevel = levelData.id;
         _progressRepository.Save(gameData);
@@ -50,6 +66,8 @@ public class LevelUseCase : ILevelUseCase
         _progressRepository.SetLevel(levelData);
         ServiceLocator.Global.Get<SoundManager>().PlaySFX(SoundId.Select);
         _loadScene.Load();
+
+        _isSelectingLevel = false;
     }
 }
 
