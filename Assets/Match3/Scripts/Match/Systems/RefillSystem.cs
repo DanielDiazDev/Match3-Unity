@@ -4,8 +4,10 @@ using Assets.Match3.Scripts.Grid;
 using Cysharp.Threading.Tasks;
 using Match3.Scripts.Data.Item;
 using Match3.Scripts.Data.Level;
+using Match3.Scripts.Data.Quests;
 using Match3.Scripts.Grid;
 using Match3.Scripts.Match.Systems.Spawner;
+using Match3.Scripts.Quests;
 using PrimeTween;
 using UnityEngine;
 
@@ -17,12 +19,15 @@ namespace Match3.Scripts.Match.Systems
         private GridSystem<GridObject> _gridSystem;
         private PieceSpawner _pieceSpawner;
         private Transform _parent;
-        public RefillSystem(LevelDataSO levelDataSo, GridSystem<GridObject> gridSystem, PieceSpawner pieceSpawner, Transform parent)
+        private IQuestSystem _questSystem;
+
+        public RefillSystem(LevelDataSO levelDataSo, GridSystem<GridObject> gridSystem, PieceSpawner pieceSpawner, Transform parent, IQuestSystem questSystem = null)
         {
             _levelDataSO = levelDataSo;
             _gridSystem = gridSystem;
             _pieceSpawner = pieceSpawner;
             _parent = parent;
+            _questSystem = questSystem;
         }
 
         public async UniTask ApplyRefill(int difficulty = 1, int cascadeCount = 0)
@@ -76,17 +81,56 @@ namespace Match3.Scripts.Match.Systems
 
             if (sequenceCreated)
             {
-                await sequence; 
+                await sequence;
             }
         }
 
         private TileSO SelectPieceWithDifficulty(int x, int y, int difficulty, int cascadeCount)
         {
             var available = _levelDataSO.availableTiles;
-            
+
             bool avoidNearMatches = difficulty >= 4 && cascadeCount > 0;
 
             var candidates = available.Where(p => !CreatesMatch(x, y, p)).ToList();
+
+            // --- NUEVA LÓGICA: Adaptar relleno a los objetivos del nivel ---
+            // Si hay objetivos de destrucción de piezas pendientes, dar más probabilidad
+            // a que aparezcan esas piezas para facilitar cumplir el objetivo.
+            var neededPieces = GetNeededPiecesFromQuests();
+            if (neededPieces.Count > 0 && candidates.Count > 0)
+            {
+                var weightedCandidates = new List<TileSO>();
+
+                foreach (var candidate in candidates)
+                {
+                    int weight = 1; // peso base para toda pieza candidata
+
+                    foreach (var needed in neededPieces)
+                    {
+                        if (candidate.id == needed.TargetPiece.id)
+                        {
+                            // Cuanto más falta por destruir (mayor urgencia), más peso
+                            int remaining = needed.Remaining;
+                            int required = needed.Required;
+                            if (required > 0)
+                            {
+                                float urgency = (float)remaining / required; // 1.0 = nada destruido, 0.0 = todo destruido
+                                weight += Mathf.CeilToInt(urgency * 10f); // +1 a +10 peso extra
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < weight; i++)
+                    {
+                        weightedCandidates.Add(candidate);
+                    }
+                }
+
+                if (weightedCandidates.Count > 0)
+                {
+                    return weightedCandidates[Random.Range(0, weightedCandidates.Count)];
+                }
+            }
 
             if (avoidNearMatches && candidates.Count > 1)
             {
@@ -99,6 +143,27 @@ namespace Match3.Scripts.Match.Systems
                 return candidates[Random.Range(0, candidates.Count)];
 
             return available[Random.Range(0, available.Count)];
+        }
+
+        /// <summary>
+        /// Obtiene los objetivos de destrucción de piezas que aún no se han completado.
+        /// </summary>
+        private List<PieceDestructionProgress> GetNeededPiecesFromQuests()
+        {
+            var needed = new List<PieceDestructionProgress>();
+
+            if (_questSystem == null)
+                return needed;
+
+            foreach (var quest in _questSystem.ActiveQuests)
+            {
+                if (quest is PieceDestructionProgress pieceQuest && !pieceQuest.IsReached)
+                {
+                    needed.Add(pieceQuest);
+                }
+            }
+
+            return needed;
         }
 
         private bool CreatesMatch(int x, int y, TileSO candidate)
@@ -157,9 +222,9 @@ namespace Match3.Scripts.Match.Systems
             if (x < _gridSystem.Width - 1 && _gridSystem.GetValue(x + 1, y)?.GetPiece()?.pieceSo == candidate) return true;
             if (y > 0 && _gridSystem.GetValue(x, y - 1)?.GetPiece()?.pieceSo == candidate) return true;
             if (y < _gridSystem.Height - 1 && _gridSystem.GetValue(x, y + 1)?.GetPiece()?.pieceSo == candidate) return true;
-            
+
             return false;
         }
-      
+
     }
 }

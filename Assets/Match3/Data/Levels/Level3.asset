@@ -401,6 +401,6 @@ MonoBehaviour:
   - {fileID: -3595066486553944368}
   maxMoves: 30
   difficulty: 1
-  starThresholds: d0070000b80b000094110000
+  starThresholds: 8813000010270000983a0000
   objectiveBonus: 500
   background: {fileID: 0}

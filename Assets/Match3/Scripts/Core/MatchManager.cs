@@ -28,8 +28,8 @@ namespace Match3.Scripts.Core
         [SerializeField] private float _cellSize = 1f;
         [SerializeField] private bool _debug = true;
         [SerializeField] private LevelDataSO _levelDataSoTest;
-        [SerializeField] private PowerUpSystem  _powerUpSystem;
-        [SerializeField] private PiecesConfigurationSO  _piecesConfigurationSO;
+        [SerializeField] private PowerUpSystem _powerUpSystem;
+        [SerializeField] private PiecesConfigurationSO _piecesConfigurationSO;
         [SerializeField] private GridObjectDebugView _selectedCellDebug;
         [SerializeField] private GameObject _backgroundTilePrefab;
         [SerializeField] private InventoryUI _inventoryUI;
@@ -120,27 +120,27 @@ namespace Match3.Scripts.Core
             }
 
             _origin = new Vector3(-_levelDataSO.width * _cellSize * 0.5f,
-                                  -_levelDataSO.height * _cellSize * 0.5f, 0f);
+                -_levelDataSO.height * _cellSize * 0.5f, 0f);
             _gridSystem = GridSystem<GridObject>.VerticalGrid(_levelDataSO.width, _levelDataSO.height,
-                                                              _cellSize, _origin, _debug);
+                _cellSize, _origin, _debug);
 
-            _pieceSpawner   = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
-            _pieceSwapper   = new PieceSwapper(_gridSystem);
-            _matchFinder    = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _questSystem    = new QuestSystem(_levelDataSO.quests);
-            _starSystem     = new StarSystem(_levelDataSO, _questSystem, _scoreSystem);
+            _pieceSpawner = new PieceSpawner(_piecesConfigurationSO, _gridSystem);
+            _pieceSwapper = new PieceSwapper(_gridSystem);
+            _matchFinder = new MatchFinder(_gridSystem, _levelDataSO.width, _levelDataSO.height);
+            _questSystem = new QuestSystem(_levelDataSO.quests);
+            _starSystem = new StarSystem(_levelDataSO, _questSystem, _scoreSystem);
 
             _powerUpSystem.Init(_gridSystem, _scoreSystem, _questSystem);
             _matchProcessor = new MatchProcessor(_gridSystem, _powerUpSystem, _scoreSystem);
-            _gravitySystem  = new GravitySystem(_gridSystem, _levelDataSO.width, _levelDataSO.height);
-            _refillSystem   = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform);
-            _moveValidator  = new MoveValidator(_gridSystem, _matchFinder);
+            _gravitySystem = new GravitySystem(_gridSystem, _levelDataSO.width, _levelDataSO.height);
+            _refillSystem = new RefillSystem(_levelDataSO, _gridSystem, _pieceSpawner, transform, _questSystem);
+            _moveValidator = new MoveValidator(_gridSystem, _matchFinder);
             _shuffleBoardSystem = new ShuffleBoardSystem(_gridSystem, _matchFinder, _moveValidator);
-            _boardResolver  = new BoardResolver(_matchFinder, _matchProcessor, _gravitySystem,
-                                                _refillSystem, _gridSystem, _scoreSystem);
+            _boardResolver = new BoardResolver(_matchFinder, _matchProcessor, _gravitySystem,
+                _refillSystem, _gridSystem, _scoreSystem);
             _turnFlowController = new TurnFlowController(_pieceSwapper, _moveValidator, _boardResolver,
                 _powerUpSystem, _scoreSystem, _gridSystem, _matchFinder);
-            _endGameController  = new EndGameSequenceController(_gridSystem, _powerUpSystem, _boardResolver);
+            _endGameController = new EndGameSequenceController(_gridSystem, _powerUpSystem, _boardResolver);
 
             _inventoryUI.Init(_progressRepository);
         }
@@ -149,53 +149,53 @@ namespace Match3.Scripts.Core
         {
             _ctx = new MatchStateContext
             {
-                GridSystem           = _gridSystem,
-                PieceSpawner         = _pieceSpawner,
-                PieceSwapper         = _pieceSwapper,
-                MatchFinder          = _matchFinder,
-                MatchProcessor       = _matchProcessor,
-                GravitySystem        = _gravitySystem,
-                RefillSystem         = _refillSystem,
-                MoveValidator        = _moveValidator,
-                ShuffleBoardSystem   = _shuffleBoardSystem,
-                PowerUpSystem        = _powerUpSystem,
-                BoardResolver        = _boardResolver,
-                TurnFlowController   = _turnFlowController,
-                EndGameController    = _endGameController,
+                GridSystem = _gridSystem,
+                PieceSpawner = _pieceSpawner,
+                PieceSwapper = _pieceSwapper,
+                MatchFinder = _matchFinder,
+                MatchProcessor = _matchProcessor,
+                GravitySystem = _gravitySystem,
+                RefillSystem = _refillSystem,
+                MoveValidator = _moveValidator,
+                ShuffleBoardSystem = _shuffleBoardSystem,
+                PowerUpSystem = _powerUpSystem,
+                BoardResolver = _boardResolver,
+                TurnFlowController = _turnFlowController,
+                EndGameController = _endGameController,
 
-                ScoreSystem          = _scoreSystem,
-                QuestSystem          = _questSystem,
-                StarSystem           = _starSystem,
-                ProgressRepository   = _progressRepository,
+                ScoreSystem = _scoreSystem,
+                QuestSystem = _questSystem,
+                StarSystem = _starSystem,
+                ProgressRepository = _progressRepository,
 
-                LevelDataSO          = _levelDataSO,
-                RemainingMoves       = _levelDataSO.maxMoves,
-                GameEnded            = false,
-                InventoryUI          = _inventoryUI,
-                GameEnd              = _gameEnd,
-                Transform            = transform,
+                LevelDataSO = _levelDataSO,
+                RemainingMoves = _levelDataSO.maxMoves,
+                GameEnded = false,
+                InventoryUI = _inventoryUI,
+                GameEnd = _gameEnd,
+                Transform = transform,
             };
 
             _ctx.OnMovesChanged += moves =>
             {
                 EventQueue.Instance.EnqueueEvent(new MovesChangedEventData(EventIds.MovesChanged, moves, 1));
             };
-            _ctx.OnBusyChanged += busy => {  };
+            _ctx.OnBusyChanged += busy => { };
 
             var states = new Dictionary<MatchState, IMatchState>
             {
-                { MatchState.Idle,             new IdleState(_ctx) },
-                { MatchState.GeneratePieces,   new GeneratePiecesState(_ctx, _backgroundTilePrefab) },
-                { MatchState.Swap,             new SwapState(_ctx) },
-                { MatchState.FindMatch,        new FindMatchState(_ctx) },
-                { MatchState.Destroy,          new DestroyState(_ctx) },
-                { MatchState.PowerUpGeneration,new PowerUpGenerationState(_ctx) },
-                { MatchState.PowerUpActivate,  new PowerUpActivateState(_ctx) },
-                { MatchState.Gravity,          new GravityState(_ctx) },
-                { MatchState.Refill,           new RefillState(_ctx) },
-                { MatchState.Shuffle,          new ShuffleState(_ctx) },
-                { MatchState.GameOver,         new GameOverState(_ctx) },
-                { MatchState.LevelWin,         new LevelWinState(_ctx) },
+                { MatchState.Idle, new IdleState(_ctx) },
+                { MatchState.GeneratePieces, new GeneratePiecesState(_ctx, _backgroundTilePrefab) },
+                { MatchState.Swap, new SwapState(_ctx) },
+                { MatchState.FindMatch, new FindMatchState(_ctx) },
+                { MatchState.Destroy, new DestroyState(_ctx) },
+                { MatchState.PowerUpGeneration, new PowerUpGenerationState(_ctx) },
+                { MatchState.PowerUpActivate, new PowerUpActivateState(_ctx) },
+                { MatchState.Gravity, new GravityState(_ctx) },
+                { MatchState.Refill, new RefillState(_ctx) },
+                { MatchState.Shuffle, new ShuffleState(_ctx) },
+                { MatchState.GameOver, new GameOverState(_ctx) },
+                { MatchState.LevelWin, new LevelWinState(_ctx) },
             };
 
             _stateMachine = new MatchStateMachine(states);
@@ -280,7 +280,7 @@ namespace Match3.Scripts.Core
                 next = await _stateMachine.TransitionTo(next);
             }
 
-          
+
             if (next == MatchState.Idle && _stateMachine.CurrentState != MatchState.Idle)
             {
                 await _stateMachine.TransitionTo(MatchState.Idle);
@@ -331,8 +331,7 @@ namespace Match3.Scripts.Core
                 await _stateMachine.TransitionTo(MatchState.Shuffle);
             }
         }
-        
-        
+
 
         private bool IsValidPosition(Vector2Int gridPosition) =>
             gridPosition.x >= 0 && gridPosition.x < _levelDataSO.width &&

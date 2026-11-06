@@ -15,7 +15,7 @@ MonoBehaviour:
   objectiveDescription: 
   icon: {fileID: 0}
   targetPiece: {fileID: 11400000, guid: 10f17fce0b5db1b4d9d01052baa23815, type: 2}
-  amountRequired: 15
+  amountRequired: 25
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -368,7 +368,7 @@ MonoBehaviour:
   - {fileID: -3592983212053884332}
   maxMoves: 25
   difficulty: 1
-  starThresholds: e8030000d0070000b80b0000
+  starThresholds: 8813000010270000983a0000
   objectiveBonus: 500
   background: {fileID: 0}
 --- !u!114 &1934625603531726627
